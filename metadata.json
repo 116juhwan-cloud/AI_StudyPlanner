@@ -1,0 +1,6 @@
+{
+  "name": "StudyWise",
+  "description": "An interactive smart study planner and focus analyzer with AI guidance, timeline logs, statistics, and settings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
