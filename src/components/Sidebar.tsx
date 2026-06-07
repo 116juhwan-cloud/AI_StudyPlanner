@@ -7,9 +7,11 @@ interface SidebarProps {
   setActiveTab: (tab: 'schedule' | 'timeline' | 'statistics' | 'settings') => void;
   user: UserProfile;
   onLogout: () => void;
+  isAiTrackerOpen: boolean;
+  setIsAiTrackerOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, user, onLogout }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiTrackerOpen, setIsAiTrackerOpen }: SidebarProps) {
   const navItems = [
     { key: 'schedule' as const, label: 'Schedule', icon: Calendar },
     { key: 'timeline' as const, label: 'Timeline', icon: History },
@@ -56,6 +58,22 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout }: Sid
 
       {/* Footer Content */}
       <div className="p-6 mt-auto border-t border-outline-variant/50">
+        {/* AI Focus Coach Button */}
+        <button
+          onClick={() => setIsAiTrackerOpen(!isAiTrackerOpen)}
+          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-3 border ${
+            isAiTrackerOpen
+              ? 'bg-rose-500 text-white border-rose-600 hover:bg-rose-600'
+              : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white border-transparent hover:opacity-95 shadow-md shadow-cyan-500/20'
+          }`}
+        >
+          <span className="relative flex h-2 w-2">
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isAiTrackerOpen ? 'bg-white' : 'bg-cyan-300'}`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${isAiTrackerOpen ? 'bg-white' : 'bg-cyan-450'}`}></span>
+          </span>
+          AI Focus Coach {isAiTrackerOpen ? '닫기' : '켜기'}
+        </button>
+
         <button
           onClick={() => setActiveTab('schedule')}
           className="w-full bg-primary text-on-primary py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-6"

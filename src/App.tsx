@@ -6,6 +6,7 @@ import ScheduleView from './components/ScheduleView';
 import TimelineView from './components/TimelineView';
 import StatisticsView from './components/StatisticsView';
 import SettingsView from './components/SettingsView';
+import { FaceMeshTracker } from './components/FaceMeshTracker';
 
 export default function App() {
   // Authentication states
@@ -19,6 +20,9 @@ export default function App() {
 
   // Navigation tab states
   const [activeTab, setActiveTab] = useState<'schedule' | 'timeline' | 'statistics' | 'settings'>('timeline');
+
+  // AI Focus Tracker state
+  const [isAiTrackerOpen, setIsAiTrackerOpen] = useState<boolean>(false);
 
   // Application configurations
   const [settings, setSettings] = useState<AppSettings>({
@@ -136,7 +140,14 @@ export default function App() {
         setActiveTab={setActiveTab} 
         user={user} 
         onLogout={handleLogout} 
+        isAiTrackerOpen={isAiTrackerOpen}
+        setIsAiTrackerOpen={setIsAiTrackerOpen}
       />
+
+      {/* AI Focus Tracker Overlay */}
+      {isAiTrackerOpen && (
+        <FaceMeshTracker onClose={() => setIsAiTrackerOpen(false)} />
+      )}
 
       {/* Main workspace container canvas */}
       <div className="ml-64 min-h-screen relative p-10 flex flex-col">
@@ -151,6 +162,7 @@ export default function App() {
               <ScheduleView 
                 onAddTask={handleAddTask} 
                 onNavigateBack={() => setActiveTab('timeline')} 
+                settings={settings}
               />
             )}
 
