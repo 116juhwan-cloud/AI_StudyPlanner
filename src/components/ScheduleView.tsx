@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Task, AppSettings } from '../types';
-import { ArrowLeft, Calendar, CheckSquare, Plus, Check, X } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckSquare, Plus, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { quotesData } from '../data/quotes';
 
 interface ScheduleViewProps {
@@ -8,9 +8,13 @@ interface ScheduleViewProps {
   onNavigateBack: () => void;
   settings: AppSettings;
   editingTask?: Task | null;
+  tasks?: Task[];
 }
 
-export default function ScheduleView({ onSaveTask, onNavigateBack, settings, editingTask }: ScheduleViewProps) {
+export default function ScheduleView({ onSaveTask, onNavigateBack, settings, editingTask, tasks }: ScheduleViewProps) {
+  const [viewMode, setViewMode] = useState<'calendar' | 'form'>(editingTask ? 'form' : 'calendar');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
   const [title, setTitle] = useState(editingTask?.title || '');
   const [isAllDay, setIsAllDay] = useState(editingTask?.isAllDay || false);
 
@@ -131,12 +135,121 @@ export default function ScheduleView({ onSaveTask, onNavigateBack, settings, edi
     setNotes(template.notes);
   };
 
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const handleDateClick = (day: number) => {
+    const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    setDueDate(`${yyyy}-${mm}-${dd}`);
+    setViewMode('form');
+  };
+
+  const handleBackClick = () => {
+    if (viewMode === 'form' && !editingTask) {
+      setViewMode('calendar');
+    } else {
+      onNavigateBack();
+    }
+  };
+
+  const renderCalendar = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    const blanks = Array.from({ length: firstDay }, (_, i) => i);
+    const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+    const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
+
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+    return (
+      <div className="w-full h-full bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm flex flex-col border border-outline-variant min-h-[500px]">
+        <div className="p-6 flex-1 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-on-surface">{year}년 {monthNames[month]}</h2>
+            <div className="flex gap-2">
+              <button onClick={handlePrevMonth} className="p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant hover:text-primary">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button onClick={handleNextMonth} className="p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant hover:text-primary">
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-2 mb-2">
+            {weekDays.map(day => (
+              <div key={day} className="text-center text-xs font-bold text-on-surface-variant py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-2 flex-1 auto-rows-fr">
+            {blanks.map(blank => (
+              <div key={`blank-${blank}`} className="p-2" />
+            ))}
+            {days.map(day => {
+              const isToday = isCurrentMonth && today.getDate() === day;
+              const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const dayTasks = tasks?.filter(t => t.startDate === dateStr) || [];
+              
+              return (
+                <button
+                  key={day}
+                  onClick={() => handleDateClick(day)}
+                  className={`flex flex-col items-start justify-start p-2 rounded-xl border transition-all cursor-pointer min-h-[80px] ${
+                    isToday 
+                      ? 'bg-primary/5 border-primary shadow-sm' 
+                      : 'bg-surface border-outline-variant/50 hover:bg-primary-container hover:border-primary/50'
+                  }`}
+                >
+                  <span className={`text-sm mb-1 ${isToday ? 'font-bold text-primary' : 'font-medium text-on-surface'}`}>{day}</span>
+                  <div className="flex flex-col gap-1 w-full mt-auto">
+                    {dayTasks.slice(0, 3).map((t, idx) => (
+                      <div key={idx} className="w-full text-[9px] bg-primary/10 text-primary truncate px-1.5 py-0.5 rounded text-left font-semibold">
+                        {t.title}
+                      </div>
+                    ))}
+                    {dayTasks.length > 3 && (
+                      <div className="w-full text-[9px] text-on-surface-variant text-center font-bold">
+                        +{dayTasks.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (viewMode === 'calendar') {
+    return renderCalendar();
+  }
+
   return (
     <div className="w-full max-w-xl mx-auto bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm flex flex-col border border-outline-variant">
       {/* Header */}
       <header className="flex justify-between items-center w-full px-6 py-4 bg-surface-bright border-b border-outline-variant">
         <button
-          onClick={onNavigateBack}
+          onClick={handleBackClick}
           aria-label="Go back"
           className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high cursor-pointer"
         >
