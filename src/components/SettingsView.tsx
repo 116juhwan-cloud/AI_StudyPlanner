@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, AppSettings } from '../types';
 import { ChevronLeft, Moon, Sun, ChevronRight, Bell, HelpCircle, Info, ShieldAlert, Sparkles, Quote, HelpCircle as HelpIcon } from 'lucide-react';
+import { quotesData } from '../data/quotes';
 
 interface SettingsViewProps {
   user: UserProfile;
@@ -15,7 +16,6 @@ export default function SettingsView({ user, setUser, settings, setSettings, onN
   const [editName, setEditName] = useState(user.name);
   const [editEmail, setEditEmail] = useState(user.email);
 
-  const quoteCategories = ['동기부여', '열정', '지혜', '계획성'];
   const personas: ('잔소리쟁이' | '칭찬 기계' | '차분한 조력자')[] = ['잔소리쟁이', '칭찬 기계', '차분한 조력자'];
 
   const handleSaveProfile = () => {
@@ -210,25 +210,29 @@ export default function SettingsView({ user, setUser, settings, setSettings, onN
           <div className="p-5 space-y-3">
             <div className="flex items-center gap-3">
               <Quote className="w-4 h-4 text-primary" />
-              <p className="text-sm font-semibold text-on-surface">홈 화면 명언 카테고리 관리</p>
+              <p className="text-sm font-semibold text-on-surface">위인 명언 설정</p>
             </div>
-            <div className="flex gap-2">
-              {quoteCategories.map((cat) => {
-                const isActive = settings.quoteCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => changeQuoteCategory(cat)}
-                    className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                      isActive 
-                        ? 'border-primary bg-primary/10 text-primary' 
-                        : 'border-outline-variant bg-surface text-on-surface-variant hover:bg-surface-container-high'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
+            <div className="flex flex-col gap-2 mt-2">
+              <p className="text-[11px] text-on-surface-variant">존경하는 위인을 선택하시면, 그 인물의 명언이 일정 화면에 나타납니다.</p>
+              <select
+                value={settings.quoteCategory}
+                onChange={(e) => changeQuoteCategory(e.target.value)}
+                className="w-full text-xs bg-surface border border-outline-variant rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+              >
+                {!quotesData.some(q => q.name === settings.quoteCategory) && (
+                  <option value={settings.quoteCategory} disabled>{settings.quoteCategory} (기존 선택)</option>
+                )}
+                <optgroup label="한국 위인">
+                  {quotesData.filter(q => q.type === 'Korean').map(q => (
+                    <option key={q.id} value={q.name}>{q.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="외국 위인">
+                  {quotesData.filter(q => q.type === 'Foreign').map(q => (
+                    <option key={q.id} value={q.name}>{q.name}</option>
+                  ))}
+                </optgroup>
+              </select>
             </div>
           </div>
 

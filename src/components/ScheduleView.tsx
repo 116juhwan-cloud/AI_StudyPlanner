@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Task } from '../types';
+import { Task, AppSettings } from '../types';
 import { ArrowLeft, Calendar, CheckSquare, Plus, Check, X } from 'lucide-react';
+import { quotesData } from '../data/quotes';
 
 interface ScheduleViewProps {
   onAddTask: (task: Omit<Task, 'id'>) => void;
   onNavigateBack: () => void;
+  settings: AppSettings;
 }
 
-export default function ScheduleView({ onAddTask, onNavigateBack }: ScheduleViewProps) {
+export default function ScheduleView({ onAddTask, onNavigateBack, settings }: ScheduleViewProps) {
   const [title, setTitle] = useState('');
   const [isAllDay, setIsAllDay] = useState(false);
   
@@ -286,9 +288,14 @@ export default function ScheduleView({ onAddTask, onNavigateBack }: ScheduleView
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_IrzeM-qZTrSLbdwuBUJNbNWot67H0ew0bVihm5c0zUXTfQrmcgzttgYttUOIVHHnn6N9VmG3vSLsznM19j_hAkPEh86I6FI4XiuL6HwBeI12obHlJy6-WC1gGl5yW8dsYgCc1Jz5Wb2dX5HjfvUf3CPZSgmR1StWTd9hjZEgmwiUxK0y9qAdU8acmww3CJtJ5w4A5UhdYxk7zKT1QowQa6DyAkIyGvH49YZU1F1YIZkbGJXjD8-KwxnfHvyR5ovVfrpNDwayyTQ" 
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary-container/10 to-transparent flex items-center px-6">
-              <p className="text-primary text-base md:text-lg font-bold italic opacity-80 select-none">
-                "Focus on the process, not just the result."
-              </p>
+              <div className="flex flex-col">
+                <p className="text-primary text-sm md:text-base font-bold italic opacity-80">
+                  "{quotesData.find(q => q.name === settings.quoteCategory)?.quote || '오늘도 화이팅입니다.'}"
+                </p>
+                <p className="text-primary text-xs font-semibold opacity-70 mt-1">
+                  - {quotesData.find(q => q.name === settings.quoteCategory)?.name || settings.quoteCategory}
+                </p>
+              </div>
             </div>
           </div>
         </div>

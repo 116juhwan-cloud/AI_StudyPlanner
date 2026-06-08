@@ -142,7 +142,7 @@ apiRouter.post("/ai-feedback", async (req, res) => {
       personaInstruction = "You are a calm, highly logical, professional Korean advisor. Analyze their plan structure, discuss focus optimization, suggest breaks, and write in polite, academic, and supportive Korean.";
     }
 
-    const prompt = `학습 일정 목록:\n${tasksSummary}\n\n선호하는 명언 카테고리: ${quoteCategory || "동기부여"}\n현재 시간: ${new Date().toISOString()}\n\n위의 일정을 분석하고 한국어로 2-3문장의 맞춤형 피드백 조언을 작성해 주세요. \n단락 구분 없이 하나의 가볍고 읽기 편한 문장 그룹(마크다운 형식 불가)으로 작성 부탁드립니다.`;
+    const prompt = `학습 일정 목록:\n${tasksSummary}\n\n존경하는 위인 (이 위인의 어조나 명언 스타일을 반영하여 피드백): ${quoteCategory || "이순신"}\n현재 시간: ${new Date().toISOString()}\n\n위의 일정을 분석하고 한국어로 2-3문장의 맞춤형 피드백 조언을 작성해 주세요. \n단락 구분 없이 하나의 가볍고 읽기 편한 문장 그룹(마크다운 형식 불가)으로 작성 부탁드립니다.`;
 
     const response = await aiInstance.models.generateContent({
       model: "gemini-3.5-flash",
