@@ -117,6 +117,13 @@ apiRouter.delete("/tasks/:id", (req, res) => {
   res.json({ success: true });
 });
 
+apiRouter.put("/tasks/:id", (req, res) => {
+  const id = req.params.id;
+  const updatedTask = req.body as Task;
+  tasks = tasks.map(t => t.id === id ? { ...t, ...updatedTask, id } : t);
+  res.json({ success: true });
+});
+
 apiRouter.post("/ai-feedback", async (req, res) => {
   try {
     const { taskList, persona, quoteCategory } = req.body;
