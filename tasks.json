@@ -10,7 +10,7 @@
     "notes": "",
     "focusLevel": "Focus",
     "estimatedTime": 120,
-    "isCompleted": false,
+    "isCompleted": true,
     "id": "wtr8hgq",
     "importance": "Medium"
   },
@@ -57,7 +57,7 @@
     "notes": "",
     "focusLevel": "Focus",
     "estimatedTime": 30,
-    "isCompleted": false,
+    "isCompleted": true,
     "importance": "High",
     "id": "pfdesnt"
   },

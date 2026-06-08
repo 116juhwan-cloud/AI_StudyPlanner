@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Task, AppSettings, ImportanceLevel } from '../types';
-import { ArrowLeft, Plus, Check, X, Star, ChevronLeft, ChevronRight, AlertCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronLeft, ChevronRight, AlertCircle, Clock, Star } from 'lucide-react';
 
 interface ScheduleViewProps {
   onSaveTask: (task: Omit<Task, 'id'>) => void;
@@ -11,8 +11,8 @@ interface ScheduleViewProps {
   preselectedStartTime?: string | null;
   preselectedDuration?: number | null;
   tasks?: Task[];
-  onPostponeStudy?: () => void; // App.tsx에서 전달받은 잔소리 팝업 제어 함수
-  onStartStudy?: () => void;    // App.tsx에서 전달받은 타임라인 탭 이동 함수
+  onPostponeStudy?: () => void;
+  onStartStudy?: () => void;
 }
 
 export default function ScheduleView({
@@ -44,13 +44,31 @@ export default function ScheduleView({
   const [estimatedHours, setEstimatedHours] = useState(initHours);
   const [estimatedMinutes, setEstimatedMinutes] = useState(initMins);
 
-  const initialSubjects = ['수학', '과학', '영어', '경제학'];
+  // 📌 학습 카테고리 상태 관리 (새 과목 추가 가능)
+  const initialSubjects = ['수학', '과학', '영어', '프로젝트'];
   if (editingTask && !initialSubjects.includes(editingTask.subject)) {
     initialSubjects.push(editingTask.subject);
   }
   const [subjects, setSubjects] = useState<string[]>(initialSubjects);
   const [selectedSubject, setSelectedSubject] = useState(editingTask?.subject || '수학');
+  const [newSubjectInput, setNewSubjectInput] = useState(''); // 👈 사용자가 새로 입력하는 텍스트 상태
+
   const [notes, setNotes] = useState(editingTask?.notes || '');
+
+  // 📌 새로운 카테고리를 리스트에 추가하는 함수
+  const handleAddSubject = () => {
+    const trimmed = newSubjectInput.trim();
+    if (!trimmed) return;
+
+    // 이미 존재하는 카테고리라면 새로 추가하지 않고 선택만 변경
+    if (subjects.includes(trimmed)) {
+      setSelectedSubject(trimmed);
+    } else {
+      setSubjects([...subjects, trimmed]);
+      setSelectedSubject(trimmed); // 추가하자마자 바로 선택되도록 설정
+    }
+    setNewSubjectInput(''); // 입력창 초기화
+  };
 
   const calculateEndTime = (startStr: string, durationMinutes: number): string => {
     if (!startStr) return '00:00';
@@ -90,13 +108,16 @@ export default function ScheduleView({
 
   const templates = [
     { title: '미적분 II: 삼각함수의 극한 연습문제', subject: '수학', startTime: '09:00', endTime: '11:30', notes: '적분 기법 풀이 및 무한 급수 수렴성 판단 교재 53-62페이지 오답노트 작성' },
-    { title: 'CS: 동적 계획법 알고리즘 최적화', subject: '과학', startTime: '13:00', endTime: '16:15', notes: '백준 등급 DP 및 그래프 탐색 핵심 3선 집중 세션. 정오 오답 코드 확인' },
-    { title: 'Toeic: Park5 오답노트', subject: '영어', startTime: '17:00', endTime: '18:45', notes: 'T.S. 엘리엇의 황무지 파트 1 분석 및 조별 토론용 요약본 정리' },
-    { title: 'OSS: git 실습', subject: '경제학', startTime: '19:30', endTime: '20:45', notes: '맥스웰의 4대 방정식 복습 및 주간 과제물 디버깅 종료.' }
+    { title: 'CS: 동적 계획법 알고리즘 최적화', subject: '전공', startTime: '13:00', endTime: '16:15', notes: '백준 등급 DP 및 그래프 탐색 핵심 3선 집중 세션. 정오 오답 코드 확인' },
+    { title: 'OSS: git 실습', subject: '전공', startTime: '17:00', endTime: '18:45', notes: 'T.S. git 명령어 실습' },
+    { title: 'Toeic: Part5 오답 정리', subject: '영어', startTime: '19:30', endTime: '20:45', notes: 'part5 오답 정리 후 복습.' }
   ];
 
   const handleLoadTemplate = (template: typeof templates[0]) => {
     setTitle(template.title);
+    if (!subjects.includes(template.subject)) {
+      setSubjects([...subjects, template.subject]);
+    }
     setSelectedSubject(template.subject);
     setStartTime(template.startTime);
     const [sh, sm] = template.startTime.split(':').map(Number);
@@ -143,7 +164,7 @@ export default function ScheduleView({
           <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-2 text-amber-900 font-semibold text-sm">
               <AlertCircle className="w-4 h-4 text-amber-600" />
-              <span>⏰ 계획하신 학습 시간이 되었습니다. 지금 공부를 시작하시겠습니까?</span>
+              <span>⏰ 계획하신 학습 시간이 되었습니다. 지금 시작하시겠습니까?</span>
             </div>
             <div className="flex gap-2">
               <button onClick={() => { if (onStartStudy) onStartStudy(); }} className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer">
@@ -263,12 +284,46 @@ export default function ScheduleView({
             </div>
           </div>
 
+          {/* 📌 수정된 학습 카테고리 영역 (기존 버튼 + 직접 입력 인터페이스) */}
           <div className="space-y-2">
             <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">학습 카테고리 (과목)</label>
+
+            {/* 1. 카테고리 버튼 선택 리스트 */}
             <div className="flex flex-wrap gap-1.5 items-center">
               {subjects.map((sub) => (
-                <button key={sub} type="button" onClick={() => setSelectedSubject(sub)} className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${selectedSubject === sub ? 'border-primary bg-primary-container text-on-primary-container' : 'border-outline-variant bg-surface text-on-surface-variant'}`}>{sub}</button>
+                <button
+                  key={sub}
+                  type="button"
+                  onClick={() => setSelectedSubject(sub)}
+                  className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${selectedSubject === sub ? 'border-primary bg-primary-container text-on-primary-container' : 'border-outline-variant bg-surface text-on-surface-variant'}`}
+                >
+                  {sub}
+                </button>
               ))}
+            </div>
+
+            {/* 2. 새 카테고리 텍스트 직접 입력창 */}
+            <div className="flex items-center gap-2 max-w-sm mt-2">
+              <input
+                type="text"
+                value={newSubjectInput}
+                onChange={(e) => setNewSubjectInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault(); // 폼 제출 방지
+                    handleAddSubject();
+                  }
+                }}
+                className="flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary transition-all"
+                placeholder="직접 입력"
+              />
+              <button
+                type="button"
+                onClick={handleAddSubject}
+                className="px-3 py-1.5 bg-secondary text-on-secondary font-bold text-xs rounded-lg hover:opacity-90 transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" /> 추가
+              </button>
             </div>
           </div>
 
