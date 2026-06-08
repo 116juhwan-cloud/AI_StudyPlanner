@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Task } from '../types';
-import { Search, Bell, ChevronLeft, ChevronRight, Calendar, Award, Trash2, Plus } from 'lucide-react';
+import { Search, Bell, ChevronLeft, ChevronRight, Calendar, Award, Trash2, Plus, Pencil } from 'lucide-react';
 
 interface TimelineViewProps {
   tasks: Task[];
   onDeleteTask: (id: string) => void;
+  onEditTask: (task: Task) => void;
   onNavigateToAddTask: () => void;
 }
 
-export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask }: TimelineViewProps) {
+export default function TimelineView({ tasks, onDeleteTask, onEditTask, onNavigateToAddTask }: TimelineViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentDateString, setCurrentDateString] = useState('2023-11-24');
 
@@ -317,23 +318,35 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
                           : 'bg-primary-container/10 border-primary text-on-surface'
                       }`}>
                         
-                        <button 
-                          onClick={() => onDeleteTask(t.id)}
-                          title="일정 삭제"
-                          className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-surface-container-high hover:text-error text-on-surface-variant transition-colors cursor-pointer flex items-center justify-center"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-
-                        <div className="flex justify-between items-start mb-1 pr-6">
-                          <h5 className="font-bold text-sm text-primary">
-                            {t.title}
-                          </h5>
-                          <span className={`font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${
-                            isFocus ? 'bg-secondary text-on-secondary' : 'bg-primary text-on-primary'
-                          }`}>
-                            {t.endTime} 종료
-                          </span>
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex-1 pr-4">
+                            <h5 className="font-bold text-sm text-primary">
+                              {t.title}
+                            </h5>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className={`font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                              isFocus ? 'bg-secondary text-on-secondary' : 'bg-primary text-on-primary'
+                            }`}>
+                              {t.endTime} 종료
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button 
+                                onClick={() => onEditTask(t)}
+                                title="일정 수정"
+                                className="p-1.5 rounded-lg bg-surface text-primary border border-primary/20 shadow-sm hover:bg-primary hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => onDeleteTask(t.id)}
+                                title="일정 삭제"
+                                className="p-1.5 rounded-lg bg-surface text-error border border-error/20 shadow-sm hover:bg-error hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                         
                         <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">

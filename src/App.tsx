@@ -36,6 +36,7 @@ export default function App() {
   // State storage for study tasks
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   // Apply dark mode theme dynamically
   useEffect(() => {
@@ -70,30 +71,58 @@ export default function App() {
     }
   }, [isLoggedIn]);
 
-  // Handler to add a new study plan
-  const handleAddTask = async (newTaskData: Omit<Task, 'id'>) => {
-    const tempId = Math.random().toString(36).substring(2, 9);
-    const newTask: Task = { ...newTaskData, id: tempId };
-
-    // Update state instantly for hyper-fast response
-    setTasks((prev) => [...prev, newTask]);
-    
-    // Switch view to timeline so user sees their new task
-    setActiveTab('timeline');
-
-    // Post to express backend API
-    try {
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask),
-      });
-      if (!response.ok) {
-        console.error("Backend error persisting schedule task");
+  // Handler to add or update a study plan
+  const handleSaveTask = async (taskData: Omit<Task, 'id'>) => {
+    if (editingTask) {
+      // Update existing task
+      const updatedTask: Task = { ...taskData, id: editingTask.id };
+      setTasks((prev) => prev.map(t => t.id === editingTask.id ? updatedTask : t));
+      setEditingTask(null);
+      setActiveTab('timeline');
+      
+      try {
+        const response = await fetch(`/api/tasks/${updatedTask.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTask),
+        });
+        if (!response.ok) {
+          console.error("Backend error updating schedule task");
+        }
+      } catch (err) {
+        console.error("Network error updating task:", err);
       }
-    } catch (err) {
-      console.error("Network error posting task:", err);
+    } else {
+      // Add new task
+      const tempId = Math.random().toString(36).substring(2, 9);
+      const newTask: Task = { ...taskData, id: tempId };
+
+      // Update state instantly for hyper-fast response
+      setTasks((prev) => [...prev, newTask]);
+      
+      // Switch view to timeline so user sees their new task
+      setActiveTab('timeline');
+
+      // Post to express backend API
+      try {
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTask),
+        });
+        if (!response.ok) {
+          console.error("Backend error persisting schedule task");
+        }
+      } catch (err) {
+        console.error("Network error posting task:", err);
+      }
     }
+  };
+
+  // Handler to trigger edit
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setActiveTab('schedule');
   };
 
   // Handler to remove task
@@ -160,9 +189,13 @@ export default function App() {
           <div className="flex-1 max-w-5xl w-full mx-auto animate-fade-in">
             {activeTab === 'schedule' && (
               <ScheduleView 
-                onAddTask={handleAddTask} 
-                onNavigateBack={() => setActiveTab('timeline')} 
+                onSaveTask={handleSaveTask} 
+                onNavigateBack={() => {
+                  setEditingTask(null);
+                  setActiveTab('timeline');
+                }} 
                 settings={settings}
+                editingTask={editingTask}
               />
             )}
 
@@ -170,7 +203,11 @@ export default function App() {
               <TimelineView 
                 tasks={tasks}
                 onDeleteTask={handleDeleteTask}
-                onNavigateToAddTask={() => setActiveTab('schedule')}
+                onEditTask={handleEditTask}
+                onNavigateToAddTask={() => {
+                  setEditingTask(null);
+                  setActiveTab('schedule');
+                }}
               />
             )}
 

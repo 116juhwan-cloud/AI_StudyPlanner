@@ -4,23 +4,32 @@ import { ArrowLeft, Calendar, CheckSquare, Plus, Check, X } from 'lucide-react';
 import { quotesData } from '../data/quotes';
 
 interface ScheduleViewProps {
-  onAddTask: (task: Omit<Task, 'id'>) => void;
+  onSaveTask: (task: Omit<Task, 'id'>) => void;
   onNavigateBack: () => void;
   settings: AppSettings;
+  editingTask?: Task | null;
 }
 
-export default function ScheduleView({ onAddTask, onNavigateBack, settings }: ScheduleViewProps) {
-  const [title, setTitle] = useState('');
-  const [isAllDay, setIsAllDay] = useState(false);
+export default function ScheduleView({ onSaveTask, onNavigateBack, settings, editingTask }: ScheduleViewProps) {
+  const [title, setTitle] = useState(editingTask?.title || '');
+  const [isAllDay, setIsAllDay] = useState(editingTask?.isAllDay || false);
   
-  const [dueDate, setDueDate] = useState('2023-11-24');
-  const [startTime, setStartTime] = useState('09:00');
-  const [estimatedHours, setEstimatedHours] = useState(1);
-  const [estimatedMinutes, setEstimatedMinutes] = useState(30);
+  const [dueDate, setDueDate] = useState(editingTask?.startDate || '2023-11-24');
+  const [startTime, setStartTime] = useState(editingTask?.startTime || '09:00');
+  
+  const initHours = editingTask?.estimatedTime ? Math.floor(editingTask.estimatedTime / 60) : 1;
+  const initMins = editingTask?.estimatedTime ? editingTask.estimatedTime % 60 : 30;
+  
+  const [estimatedHours, setEstimatedHours] = useState(initHours);
+  const [estimatedMinutes, setEstimatedMinutes] = useState(initMins);
 
-  const [subjects, setSubjects] = useState<string[]>(['수학', '과학', '영어', '경제학']);
-  const [selectedSubject, setSelectedSubject] = useState('수학');
-  const [notes, setNotes] = useState('');
+  const initialSubjects = ['수학', '과학', '영어', '경제학'];
+  if (editingTask && !initialSubjects.includes(editingTask.subject)) {
+    initialSubjects.push(editingTask.subject);
+  }
+  const [subjects, setSubjects] = useState<string[]>(initialSubjects);
+  const [selectedSubject, setSelectedSubject] = useState(editingTask?.subject || '수학');
+  const [notes, setNotes] = useState(editingTask?.notes || '');
 
   const [newSubjectInput, setNewSubjectInput] = useState('');
   const [isAddingSubject, setIsAddingSubject] = useState(false);
@@ -57,7 +66,7 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
     const durationMinutes = estimatedHours * 60 + estimatedMinutes;
     const calculatedEndTime = isAllDay ? '23:59' : calculateEndTime(startTime, durationMinutes);
 
-    onAddTask({
+    onSaveTask({
       title: title.trim(),
       isAllDay,
       startDate: dueDate,
@@ -132,7 +141,7 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-lg font-bold text-primary">일정 추가</h1>
+        <h1 className="text-lg font-bold text-primary">{editingTask ? '일정 수정' : '일정 추가'}</h1>
         <button 
           onClick={handleSave}
           className="px-4 py-2 bg-primary text-on-primary font-semibold text-xs rounded-lg hover:opacity-85 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
