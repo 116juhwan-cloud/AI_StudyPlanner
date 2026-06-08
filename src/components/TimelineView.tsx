@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Task } from '../types';
-import { Search, Bell, ChevronLeft, ChevronRight, Calendar, Award, Trash2, Plus } from 'lucide-react';
+import { Search, Bell, ChevronLeft, ChevronRight, Calendar, Award, Trash2, Plus, Pencil } from 'lucide-react';
 
 interface TimelineViewProps {
   tasks: Task[];
   onDeleteTask: (id: string) => void;
+  onEditTask: (task: Task) => void;
   onNavigateToAddTask: () => void;
 }
 
-export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask }: TimelineViewProps) {
+export default function TimelineView({ tasks, onDeleteTask, onEditTask, onNavigateToAddTask }: TimelineViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentDateString, setCurrentDateString] = useState('2023-11-24');
 
@@ -22,8 +23,18 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
     })
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+  const formatDuration = (minutes?: number) => {
+    if (!minutes || minutes <= 0) return '';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0 && m > 0) return `${h}시간 ${m}분`;
+    if (h > 0) return `${h}시간`;
+    return `${m}분`;
+  };
+
   const computeStats = () => {
     let totalMinutes = 0;
+    let totalEstimatedMinutes = 0;
     const subjectMinutes: Record<string, number> = {};
 
     tasks.forEach((t) => {
@@ -36,6 +47,12 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
         
         totalMinutes += diffMins;
         subjectMinutes[t.subject] = (subjectMinutes[t.subject] || 0) + diffMins;
+
+        if (t.estimatedTime && t.estimatedTime > 0) {
+          totalEstimatedMinutes += t.estimatedTime;
+        } else {
+          totalEstimatedMinutes += diffMins;
+        }
       }
     });
 
@@ -43,18 +60,25 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
     const minutes = totalMinutes % 60;
     const totalHoursString = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`;
 
+    const estHours = Math.floor(totalEstimatedMinutes / 60);
+    const estMinutes = totalEstimatedMinutes % 60;
+    const totalEstimatedString = estHours > 0 || estMinutes > 0
+      ? `${estHours > 0 ? `${estHours}시간 ` : ''}${estMinutes > 0 ? `${estMinutes}분` : ''}`
+      : '0분';
+
     const goal = 480; 
     const percentage = goal > 0 ? Math.round((totalMinutes / goal) * 100) : 0;
 
     return {
       totalHoursString,
       totalMinutes,
+      totalEstimatedString,
       percentage,
       subjectMinutes
     };
   };
 
-  const { totalHoursString, percentage, subjectMinutes } = computeStats();
+  const { totalHoursString, totalEstimatedString, percentage, subjectMinutes } = computeStats();
 
   const formatDateHeader = (dateStr: string) => {
     const replaced = dateStr.replace(/-/g, '.');
@@ -159,7 +183,8 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
           <div className="bg-primary text-on-primary p-6 rounded-2xl shadow-md relative overflow-hidden">
             <div className="relative z-10">
               <p className="font-mono text-[10px] font-semibold text-on-primary-container tracking-wider uppercase opacity-80 mb-1">TOTAL STUDY TIME</p>
-              <h3 className="text-4xl font-black mb-3">{totalHoursString}</h3>
+              <h3 className="text-4xl font-black mb-1">{totalHoursString}</h3>
+              <p className="text-xs text-white/80 font-medium mb-3">⏱️ 총 예상 학습 시간: {totalEstimatedString}</p>
               <div className="flex items-center gap-1 text-secondary-fixed text-xs font-semibold">
                 <Award className="w-3.5 h-3.5" />
                 <span>15% more than yesterday</span>
@@ -293,36 +318,53 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
                           : 'bg-primary-container/10 border-primary text-on-surface'
                       }`}>
                         
-                        <button 
-                          onClick={() => onDeleteTask(t.id)}
-                          title="일정 삭제"
-                          className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-surface-container-high hover:text-error text-on-surface-variant transition-colors cursor-pointer flex items-center justify-center"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-
-                        <div className="flex justify-between items-start mb-1 pr-6">
-                          <h5 className="font-bold text-sm text-primary">
-                            {t.title}
-                          </h5>
-                          <span className={`font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${
-                            isFocus ? 'bg-secondary text-on-secondary' : 'bg-primary text-on-primary'
-                          }`}>
-                            {t.endTime} 종료
-                          </span>
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex-1 pr-4">
+                            <h5 className="font-bold text-sm text-primary">
+                              {t.title}
+                            </h5>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className={`font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                              isFocus ? 'bg-secondary text-on-secondary' : 'bg-primary text-on-primary'
+                            }`}>
+                              {t.endTime} 종료
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button 
+                                onClick={() => onEditTask(t)}
+                                title="일정 수정"
+                                className="p-1.5 rounded-lg bg-surface text-primary border border-primary/20 shadow-sm hover:bg-primary hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => onDeleteTask(t.id)}
+                                title="일정 삭제"
+                                className="p-1.5 rounded-lg bg-surface text-error border border-error/20 shadow-sm hover:bg-error hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                         
                         <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">
                           {t.notes || "기록된 메모가 없습니다."}
                         </p>
 
-                        <div className="flex gap-1.5 items-center mt-3">
+                         <div className="flex gap-1.5 flex-wrap items-center mt-3">
                           <span className="text-[10px] bg-surface-container-high/60 border border-outline-variant/30 text-on-surface px-2 py-0.5 rounded font-medium">
                             {t.subject}
                           </span>
+                          {t.estimatedTime && t.estimatedTime > 0 && (
+                            <span className="text-[10px] bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded font-bold">
+                              ⏱️ 예상 소요: {formatDuration(t.estimatedTime)}
+                            </span>
+                          )}
                           {!t.isAllDay && (
                             <span className="text-[10px] text-on-surface-variant font-medium">
-                              ⏱️ {t.startTime} ~ {t.endTime}
+                              ⏱️ 계획 시간: {t.startTime} ~ {t.endTime}
                             </span>
                           )}
                         </div>
