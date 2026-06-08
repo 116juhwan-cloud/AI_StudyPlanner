@@ -19,10 +19,10 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
         const response = await fetch('/api/ai-feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            taskList: tasks, 
-            persona: settings.aiPersona, 
-            quoteCategory: settings.quoteCategory 
+          body: JSON.stringify({
+            taskList: tasks,
+            persona: settings.aiPersona,
+            quoteCategory: settings.quoteCategory
           }),
         });
         const data = await response.json();
@@ -41,14 +41,35 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
     loadAiAdvice();
   }, [tasks, settings.aiPersona, settings.quoteCategory]);
 
-  const hourlyFlow = [
-    { hour: '08h', pct: 42, type: 'Mild' },
-    { hour: '10h', pct: 92, type: 'High' },
-    { hour: '12h', pct: 78, type: 'High' },
-    { hour: '14h', pct: 18, type: 'Mild' },
-    { hour: '16h', pct: 64, type: 'High' },
-    { hour: '18h', pct: 98, type: 'High', isPeak: true },
-    { hour: '20h', pct: 51, type: 'Mild' },
+  // 실제 데이터 기반 통계 계산
+  const today = new Date().toLocaleDateString('en-CA'); // 현재 실제 날짜 (YYYY-MM-DD 형식)
+  const todayTasks = tasks.filter(t => t.startDate === today);
+  const completedTasks = todayTasks.filter(t => t.isCompleted);
+
+  const achievementRate = todayTasks.length > 0
+    ? Math.round((completedTasks.length / todayTasks.length) * 100)
+    : 0;
+
+  const totalMins = todayTasks.reduce((acc, t) => {
+    const [sh, sm] = t.startTime.split(':').map(Number);
+    const [eh, em] = t.endTime.split(':').map(Number);
+    let diff = (eh * 60 + em) - (sh * 60 + sm);
+    if (diff < 0) diff += 24 * 60;
+    return acc + diff;
+  }, 0);
+
+  const hours = Math.floor(totalMins / 60);
+  const minutes = totalMins % 60;
+  const timeStr = `${hours}h ${minutes}m`;
+
+  // 데이터가 없을 때를 위한 빈 흐름 구성
+  const hourlyFlow = todayTasks.length > 0 ? [
+    { hour: '08h', pct: 20, type: 'Mild' },
+    { hour: '12h', pct: 60, type: 'High' },
+    { hour: '16h', pct: 40, type: 'Mild' },
+    { hour: '20h', pct: 80, type: 'High', isPeak: true },
+  ] : [
+    { hour: 'N/A', pct: 0, type: 'Mild' }
   ];
 
   const handleShare = () => {
@@ -74,18 +95,17 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
               <button
                 key={range}
                 onClick={() => setActiveRange(range)}
-                className={`px-5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  isActive 
-                    ? 'bg-primary text-on-primary shadow-sm'
-                    : 'text-on-surface hover:bg-surface-container-highest'
-                }`}
+                className={`px-5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${isActive
+                  ? 'bg-primary text-on-primary shadow-sm'
+                  : 'text-on-surface hover:bg-surface-container-highest'
+                  }`}
               >
                 {range}
               </button>
             );
           })}
           <div className="w-[1px] h-6 bg-outline-variant mx-1" />
-          <button 
+          <button
             onClick={handleShare}
             className="flex items-center gap-1.5 px-3 py-2 text-primary font-bold text-xs hover:bg-primary/5 rounded-lg transition-all cursor-pointer"
           >
@@ -103,34 +123,34 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
             </h4>
             <div className="relative w-44 h-44 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
-                <circle 
-                  cx="88" 
-                  cy="88" 
-                  r="72" 
-                  className="text-surface-container-high/30" 
-                  stroke="currentColor" 
-                  strokeWidth="10" 
-                  fill="transparent" 
+                <circle
+                  cx="88"
+                  cy="88"
+                  r="72"
+                  className="text-surface-container-high/30"
+                  stroke="currentColor"
+                  strokeWidth="10"
+                  fill="transparent"
                 />
-                <circle 
-                  cx="88" 
-                  cy="88" 
-                  r="72" 
-                  className="text-primary transition-all duration-700 ease-out" 
-                  stroke="currentColor" 
-                  strokeWidth="10" 
-                  fill="transparent" 
+                <circle
+                  cx="88"
+                  cy="88"
+                  r="72"
+                  className="text-primary transition-all duration-700 ease-out"
+                  stroke="currentColor"
+                  strokeWidth="10"
+                  fill="transparent"
                   strokeDasharray="452.4"
-                  strokeDashoffset="113.1" // 75% offset
+                  strokeDashoffset={452.4 - (452.4 * achievementRate) / 100}
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-2xl font-bold font-mono text-primary">75%</span>
+                <span className="text-2xl font-bold font-mono text-primary">{achievementRate}%</span>
                 <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-widest">ACHIEVED</span>
               </div>
             </div>
             <div className="mt-5 space-y-1">
-              <p className="text-xl font-bold font-mono text-primary">6h 45m</p>
+              <p className="text-xl font-bold font-mono text-primary">{timeStr}</p>
               <p className="text-xs text-on-surface-variant font-medium">Total Concentration Time</p>
             </div>
           </div>
@@ -140,7 +160,7 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
               <Brain className="w-4 h-4 text-secondary-fixed shrink-0" />
               <h4 className="text-xs font-bold text-white">Peak Focus State Analysis</h4>
             </div>
-            
+
             <p className="text-xs text-white/90 leading-relaxed mb-6">
               Your concentration is <span className="font-bold text-secondary-fixed">24% higher</span> during the morning hours (09:00 - 11:30) compared to the afternoon.
             </p>
@@ -175,16 +195,15 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
               const isHigh = bar.type === 'High';
               return (
                 <div key={bar.hour} className="group relative flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                  <div 
-                    className={`w-full rounded-t-lg transition-all duration-300 origin-bottom cursor-help ${
-                      isHigh 
-                        ? 'bg-primary hover:bg-primary-container' 
-                        : 'bg-secondary-container hover:bg-secondary'
-                    }`}
+                  <div
+                    className={`w-full rounded-t-lg transition-all duration-300 origin-bottom cursor-help ${isHigh
+                      ? 'bg-primary hover:bg-primary-container'
+                      : 'bg-secondary-container hover:bg-secondary'
+                      }`}
                     style={{ height: `${bar.pct}%` }}
                   />
                   <span className="font-mono text-[10px] font-bold text-on-surface-variant">{bar.hour}</span>
-                  
+
                   <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
                     <div className="bg-inverse-surface text-inverse-on-surface text-[9px] font-bold font-mono px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap">
                       Concentration: {bar.pct}% {bar.isPeak ? '(Peak)' : ''}
@@ -206,9 +225,9 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
                 <span className="text-sm font-bold text-primary">8 Deep Focus</span>
               </div>
             </div>
-            
+
             <button className="text-xs font-semibold text-secondary flex items-center gap-0.5 hover:underline cursor-pointer">
-              View Detailed Log 
+              View Detailed Log
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
