@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task } from '../types';
-import { Search, Bell, ChevronLeft, ChevronRight, Calendar, Award, Trash2, Plus, Pencil } from 'lucide-react';
+import { Search, Bell, ChevronLeft, ChevronRight, Calendar, Award, Trash2, Plus, Pencil, Play, Timer, X, CheckCircle2, Pause } from 'lucide-react';
 
 interface TimelineViewProps {
   tasks: Task[];
@@ -12,6 +12,54 @@ interface TimelineViewProps {
 export default function TimelineView({ tasks, onDeleteTask, onEditTask, onNavigateToAddTask }: TimelineViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentDateString, setCurrentDateString] = useState('2023-11-24');
+
+  // 일정 상태 관리
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [notificationTask, setNotificationTask] = useState<Task | null>(null);
+  const [dismissedTaskIds, setDismissedTaskIds] = useState<Set<string>>(new Set());
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
+  const [taskAccumulatedSeconds, setTaskAccumulatedSeconds] = useState<Record<string, number>>({});
+
+  // 5초마다 시작 시간이 된 일정이 있는지 확인
+  useEffect(() => {
+    const checkTime = setInterval(() => {
+      const now = new Date();
+      const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const todayYMD = now.toLocaleDateString('en-CA');
+
+      const startingTask = tasks.find(t => 
+        t.startDate === todayYMD && 
+        t.startTime === currentHHMM && 
+        !dismissedTaskIds.has(t.id) && 
+        activeTaskId !== t.id &&
+        !completedTaskIds.has(t.id)
+      );
+
+      if (startingTask && (!notificationTask || notificationTask.id !== startingTask.id)) {
+        setNotificationTask(startingTask);
+      }
+    }, 5000);
+    return () => clearInterval(checkTime);
+  }, [tasks, dismissedTaskIds, activeTaskId, notificationTask, completedTaskIds]);
+
+  // 타이머 로직
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (activeTaskId) {
+      timer = setInterval(() => {
+        setElapsedSeconds(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [activeTaskId]);
+
+  const formatStopwatch = (totalSecs: number) => {
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    return `${h > 0 ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
   const filteredTasks = tasks
     .filter((task) => {
@@ -113,6 +161,50 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onNaviga
 
   return (
     <div className="w-full">
+      {/* 시작 알림 팝업 */}
+      {notificationTask && (
+        <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-surface-container-high border-2 border-primary/20 rounded-2xl p-5 shadow-2xl flex items-start gap-4 max-w-sm backdrop-blur-md">
+            <div className="bg-primary/10 p-2.5 rounded-xl text-primary">
+              <Timer className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-primary mb-0.5">학습 시간 알림</p>
+              <h5 className="text-sm font-bold text-on-surface mb-1">[{notificationTask.subject}] {notificationTask.title}</h5>
+              <p className="text-[11px] text-on-surface-variant mb-4 leading-tight">계획하신 학습 시간이 되었습니다.</p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    if (activeTaskId) setTaskAccumulatedSeconds(prev => ({ ...prev, [activeTaskId]: elapsedSeconds }));
+                    setElapsedSeconds(taskAccumulatedSeconds[notificationTask.id] || 0);
+                    setActiveTaskId(notificationTask.id);
+                    setNotificationTask(null);
+                  }}
+                  className="flex-1 bg-primary text-on-primary py-2 rounded-lg text-xs font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Play className="w-3 h-3 fill-current" /> 일정 시작
+                </button>
+                <button 
+                  onClick={() => {
+                    setDismissedTaskIds(prev => new Set(prev).add(notificationTask.id));
+                    setNotificationTask(null);
+                  }}
+                  className="px-3 py-2 border border-outline-variant text-on-surface-variant rounded-lg text-xs font-semibold hover:bg-surface-container transition-all cursor-pointer"
+                >
+                  나중에
+                </button>
+              </div>
+            </div>
+            <button 
+              onClick={() => setNotificationTask(null)}
+              className="p-1 hover:bg-surface-container rounded-full text-on-surface-variant cursor-pointer transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-outline-variant/40 mb-6">
         <div className="flex items-center gap-4">
@@ -301,22 +393,41 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onNaviga
               <div className="relative pl-12 border-l border-outline-variant/50 ml-4 space-y-6 py-2">
                 {filteredTasks.map((t) => {
                   const isFocus = t.focusLevel === 'Focus';
+                  const isActive = activeTaskId === t.id;
+                  const isCompleted = completedTaskIds.has(t.id);
                   
                   return (
                     <div key={t.id} className="relative group/node animate-fade-in">
-                      <div className={`absolute -left-[53px] top-6 w-3 h-3 rounded-full border-2 bg-surface-container-lowest box-content z-10 transition-transform duration-150 group-hover/node:scale-125 ${
-                        isFocus ? 'border-secondary-container bg-secondary' : 'border-primary bg-primary'
-                      }`} />
+                      <div className={`absolute -left-[53px] top-6 w-3 h-3 rounded-full border-2 bg-surface-container-lowest box-content z-10 transition-transform duration-150 group-hover/node:scale-125 
+                        ${isActive ? 'ring-4 ring-primary/20' : ''} 
+                        ${isCompleted ? 'border-green-500 bg-green-500' : 
+                          isFocus ? 'border-secondary-container bg-secondary' : 'border-primary bg-primary'}`} 
+                      />
 
                       <span className="absolute -left-[108px] top-5 text-[9px] font-bold font-mono text-on-surface-variant bg-surface px-1">
                         {t.startTime}
                       </span>
 
-                      <div className={`p-4 rounded-xl shadow-sm border-l-4 transition-all hover:shadow-md relative ${
-                        isFocus 
-                          ? 'bg-secondary/10 border-secondary-container text-on-surface-variant' 
-                          : 'bg-primary-container/10 border-primary text-on-surface'
-                      }`}>
+                      <div className={`p-4 rounded-xl shadow-sm border-l-4 transition-all hover:shadow-md relative 
+                        ${isActive ? 'bg-primary/5 border-l-primary ring-1 ring-primary/10 scale-[1.01]' : 
+                          isCompleted ? 'bg-green-500/5 border-l-green-500 opacity-90' :
+                          isFocus ? 'bg-secondary/10 border-secondary-container text-on-surface-variant' 
+                                  : 'bg-primary-container/10 border-primary text-on-surface'}`}>
+                        
+                        {/* 상태 배지 */}
+                        {(isActive || (taskAccumulatedSeconds[t.id] > 0 && !isCompleted)) && (
+                          <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold shadow-lg flex items-center gap-1.5 transition-all ${
+                            isActive ? 'bg-primary text-on-primary animate-bounce' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          }`}>
+                            {isActive ? '진행 중' : '중단됨'}: {formatStopwatch(isActive ? elapsedSeconds : taskAccumulatedSeconds[t.id])}
+                          </div>
+                        )}
+
+                        {isCompleted && !isActive && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-[10px] font-bold shadow-lg flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3 h-3" /> 수행 완료 ({formatStopwatch(taskAccumulatedSeconds[t.id] || 0)})
+                          </div>
+                        )}
                         
                         <div className="flex justify-between items-start mb-1">
                           <div className="flex-1 pr-4">
@@ -367,6 +478,59 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onNaviga
                               ⏱️ 계획 시간: {t.startTime} ~ {t.endTime}
                             </span>
                           )}
+                          {(taskAccumulatedSeconds[t.id] > 0 || isActive) && (
+                            <span className="text-[10px] text-primary font-bold bg-primary/5 px-1.5 py-0.5 rounded border border-primary/10">
+                              🎯 수행 시간: {formatStopwatch(isActive ? elapsedSeconds : (taskAccumulatedSeconds[t.id] || 0))}
+                            </span>
+                          )}
+
+                          {/* 액션 버튼 */}
+                          <div className="ml-auto flex gap-1.5">
+                            {!isActive && !isCompleted && (
+                              <button 
+                                onClick={() => {
+                                  if (activeTaskId) setTaskAccumulatedSeconds(prev => ({ ...prev, [activeTaskId]: elapsedSeconds }));
+                                  setElapsedSeconds(taskAccumulatedSeconds[t.id] || 0);
+                                  setActiveTaskId(t.id);
+                                }}
+                                className="text-[10px] bg-primary text-on-primary px-2.5 py-1 rounded font-bold flex items-center gap-1 hover:opacity-90 cursor-pointer"
+                              >
+                                <Play className="w-2.5 h-2.5 fill-current" /> {taskAccumulatedSeconds[t.id] > 0 ? '이어하기' : '시작하기'}
+                              </button>
+                            )}
+                            {isActive && (
+                              <>
+                                <button 
+                                  onClick={() => {
+                                    setTaskAccumulatedSeconds(prev => ({ ...prev, [t.id]: elapsedSeconds }));
+                                    setActiveTaskId(null);
+                                  }}
+                                  className="text-[10px] bg-amber-500 text-white px-2.5 py-1 rounded font-bold flex items-center gap-1 hover:opacity-90 cursor-pointer"
+                                >
+                                  <Pause className="w-2.5 h-2.5 fill-current" /> 중단하기
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const requiredSeconds = (t.estimatedTime || 0) * 60;
+                                    if (elapsedSeconds < requiredSeconds) {
+                                      alert(`아직 목표 학습 시간(${t.estimatedTime}분)을 채우지 못했습니다.`);
+                                      return;
+                                    }
+                                    setTaskAccumulatedSeconds(prev => ({ ...prev, [t.id]: elapsedSeconds }));
+                                    setCompletedTaskIds((prev) => new Set(prev).add(t.id));
+                                    setActiveTaskId(null);
+                                  }}
+                                  className={`text-[10px] px-2.5 py-1 rounded font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                                    elapsedSeconds >= (t.estimatedTime || 0) * 60
+                                      ? 'bg-green-600 text-white hover:opacity-90'
+                                      : 'bg-outline-variant text-on-surface-variant grayscale opacity-70'
+                                  }`}
+                                >
+                                  <CheckCircle2 className="w-2.5 h-2.5" /> 완료하기
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
