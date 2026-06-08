@@ -1,10 +1,10 @@
 import React from 'react';
 import { UserProfile } from '../types';
-import { Calendar, History, BarChart2, Settings, Plus, LogOut, CalendarDays } from 'lucide-react';
+import { Calendar, History, BarChart2, Settings, Plus, LogOut } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'schedule' | 'timeline' | 'calendar' | 'statistics' | 'settings';
-  setActiveTab: (tab: 'schedule' | 'timeline' | 'calendar' | 'statistics' | 'settings') => void;
+  activeTab: 'schedule' | 'timeline' | 'statistics' | 'settings';
+  setActiveTab: (tab: 'schedule' | 'timeline' | 'statistics' | 'settings') => void;
   user: UserProfile;
   onLogout: () => void;
   isAiTrackerOpen: boolean;
@@ -13,11 +13,10 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiTrackerOpen, setIsAiTrackerOpen }: SidebarProps) {
   const navItems = [
-    { key: 'schedule' as const, label: 'Schedule', icon: Calendar },
-    { key: 'timeline' as const, label: 'Timeline', icon: History },
-    { key: 'calendar' as const, label: 'Calendar', icon: CalendarDays },
-    { key: 'statistics' as const, label: 'Statistics', icon: BarChart2 },
-    { key: 'settings' as const, label: 'Settings', icon: Settings },
+    { key: 'schedule' as const, label: '스케줄', icon: Calendar },
+    { key: 'timeline' as const, label: '타임라인', icon: History },
+    { key: 'statistics' as const, label: '통계', icon: BarChart2 },
+    { key: 'settings' as const, label: '설정', icon: Settings },
   ];
 
   return (
@@ -25,7 +24,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
       {/* Brand Header */}
       <div className="p-6">
         <h1 className="text-xl font-bold text-primary mb-1 tracking-tight">
-          Study Planner
+          스터디 플래너
         </h1>
         <p className="font-mono text-[10px] text-on-surface-variant font-bold tracking-widest uppercase">
           Academic Focus
@@ -80,7 +79,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
           className="w-full bg-primary text-on-primary py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-6"
         >
           <Plus className="w-4 h-4" />
-          New Task
+          새로운 할 일 (New Task)
         </button>
 
         {/* User profile card */}

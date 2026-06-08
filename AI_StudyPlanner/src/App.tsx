@@ -7,7 +7,6 @@ import TimelineView from './components/TimelineView';
 import StatisticsView from './components/StatisticsView';
 import SettingsView from './components/SettingsView';
 import { FaceMeshTracker } from './components/FaceMeshTracker';
-import CalendarView from './components/CalendarView';
 
 export default function App() {
   // Authentication states
@@ -20,7 +19,7 @@ export default function App() {
   });
 
   // Navigation tab states
-  const [activeTab, setActiveTab] = useState<'schedule' | 'timeline' | 'calendar' | 'statistics' | 'settings'>('timeline');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'timeline' | 'statistics' | 'settings'>('timeline');
 
   // AI Focus Tracker state
   const [isAiTrackerOpen, setIsAiTrackerOpen] = useState<boolean>(false);
@@ -38,10 +37,6 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [preselectedDate, setPreselectedDate] = useState<string | null>(null);
-  const [preselectedStartTime, setPreselectedStartTime] = useState<string | null>(null);
-  const [preselectedDuration, setPreselectedDuration] = useState<number | null>(null);
-  const [fromTab, setFromTab] = useState<'timeline' | 'calendar'>('timeline');
 
   // Apply dark mode theme dynamically
   useEffect(() => {
@@ -83,10 +78,7 @@ export default function App() {
       const updatedTask: Task = { ...taskData, id: editingTask.id };
       setTasks((prev) => prev.map(t => t.id === editingTask.id ? updatedTask : t));
       setEditingTask(null);
-      setPreselectedDate(null);
-      setPreselectedStartTime(null);
-      setPreselectedDuration(null);
-      setActiveTab(fromTab);
+      setActiveTab('timeline');
       
       try {
         const response = await fetch(`/api/tasks/${updatedTask.id}`, {
@@ -108,11 +100,8 @@ export default function App() {
       // Update state instantly for hyper-fast response
       setTasks((prev) => [...prev, newTask]);
       
-      // Switch view back to the originating tab
-      setActiveTab(fromTab);
-      setPreselectedDate(null);
-      setPreselectedStartTime(null);
-      setPreselectedDuration(null);
+      // Switch view to timeline so user sees their new task
+      setActiveTab('timeline');
 
       // Post to express backend API
       try {
@@ -216,22 +205,17 @@ export default function App() {
             <p className="text-sm text-on-surface-variant font-semibold">데이터를 유기적으로 가져오고 있습니다...</p>
           </div>
         ) : (
-          <div className={`flex-1 w-full mx-auto animate-fade-in ${activeTab === 'calendar' ? 'max-w-[95%]' : 'max-w-5xl'}`}>
+          <div className="flex-1 max-w-5xl w-full mx-auto animate-fade-in">
             {activeTab === 'schedule' && (
               <ScheduleView 
                 onSaveTask={handleSaveTask} 
                 onNavigateBack={() => {
                   setEditingTask(null);
-                  setPreselectedDate(null);
-                  setPreselectedStartTime(null);
-                  setPreselectedDuration(null);
-                  setActiveTab(fromTab);
+                  setActiveTab('timeline');
                 }} 
                 settings={settings}
                 editingTask={editingTask}
-                preselectedDate={preselectedDate}
-                preselectedStartTime={preselectedStartTime}
-                preselectedDuration={preselectedDuration}
+                tasks={tasks}
               />
             )}
 
@@ -239,38 +223,10 @@ export default function App() {
               <TimelineView 
                 tasks={tasks}
                 onDeleteTask={handleDeleteTask}
-                onEditTask={(task) => {
-                  setFromTab('timeline');
-                  handleEditTask(task);
-                }}
+                onEditTask={handleEditTask}
                 onToggleTask={handleToggleTask}
                 onNavigateToAddTask={() => {
                   setEditingTask(null);
-                  setPreselectedDate(null);
-                  setPreselectedStartTime(null);
-                  setPreselectedDuration(null);
-                  setFromTab('timeline');
-                  setActiveTab('schedule');
-                }}
-              />
-            )}
-
-            {activeTab === 'calendar' && (
-              <CalendarView 
-                tasks={tasks}
-                onDeleteTask={handleDeleteTask}
-                onEditTask={(task) => {
-                  setFromTab('calendar');
-                  setEditingTask(task);
-                  setActiveTab('schedule');
-                }}
-                onToggleTask={handleToggleTask}
-                onNavigateToAddTask={(date, startTime, duration) => {
-                  setEditingTask(null);
-                  setPreselectedDate(date);
-                  setPreselectedStartTime(startTime || null);
-                  setPreselectedDuration(duration || null);
-                  setFromTab('calendar');
                   setActiveTab('schedule');
                 }}
               />
