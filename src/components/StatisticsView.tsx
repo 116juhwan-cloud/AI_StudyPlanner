@@ -81,9 +81,9 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
       {/* Top Header Bar */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
-          <h3 className="text-2xl font-bold text-primary tracking-tight">Concentration Analysis</h3>
+          <h3 className="text-2xl font-bold text-primary tracking-tight">집중도 분석 (Concentration Analysis)</h3>
           <p className="text-xs text-on-surface-variant mt-1.5 font-medium">
-            Deeper insights into your academic performance.
+            학습 성과에 대한 깊은 인사이트를 제공합니다. (Deeper insights into your academic performance.)
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
                   : 'text-on-surface hover:bg-surface-container-highest'
                   }`}
               >
-                {range}
+                {range === 'Day' ? '일간 (Day)' : range === 'Week' ? '주간 (Week)' : '월간 (Month)'}
               </button>
             );
           })}
@@ -110,7 +110,7 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
             className="flex items-center gap-1.5 px-3 py-2 text-primary font-bold text-xs hover:bg-primary/5 rounded-lg transition-all cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Share</span>
+            <span>공유 (Share)</span>
           </button>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
           <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm flex flex-col items-center justify-center text-center">
             <h4 className="text-[10px] font-bold font-mono text-on-surface-variant tracking-widest uppercase mb-5">
-              Daily Goal Achievement
+              일일 목표 달성률 (Daily Goal Achievement)
             </h4>
             <div className="relative w-44 h-44 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
@@ -151,23 +151,23 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
             </div>
             <div className="mt-5 space-y-1">
               <p className="text-xl font-bold font-mono text-primary">{timeStr}</p>
-              <p className="text-xs text-on-surface-variant font-medium">Total Concentration Time</p>
+              <p className="text-xs text-on-surface-variant font-medium">총 집중 시간 (Total Concentration Time)</p>
             </div>
           </div>
 
           <div className="bg-primary-container p-6 rounded-2xl text-on-primary-container shadow-sm border border-primary/20 flex flex-col justify-between">
             <div className="flex items-center gap-2 mb-3">
               <Brain className="w-4 h-4 text-secondary-fixed shrink-0" />
-              <h4 className="text-xs font-bold text-white">Peak Focus State Analysis</h4>
+              <h4 className="text-xs font-bold text-white">최고 집중 상태 분석 (Peak Focus State Analysis)</h4>
             </div>
 
             <p className="text-xs text-white/90 leading-relaxed mb-6">
-              Your concentration is <span className="font-bold text-secondary-fixed">24% higher</span> during the morning hours (09:00 - 11:30) compared to the afternoon.
+              오후보다 오전(09:00 - 11:30)에 집중력이 <span className="font-bold text-secondary-fixed">24% 더 높습니다</span>.
             </p>
 
             <div className="flex items-center justify-between p-4 bg-primary/40 rounded-xl border border-white/5 mt-auto">
               <div>
-                <p className="font-mono text-[9px] font-bold text-white/70 uppercase tracking-widest">BEST START TIME</p>
+                <p className="font-mono text-[9px] font-bold text-white/70 uppercase tracking-widest">최적의 시작 시간 (BEST START TIME)</p>
                 <p className="text-base font-bold font-mono text-white">08:45 AM</p>
               </div>
               <Lightbulb className="w-6 h-6 text-secondary-fixed" />
@@ -177,15 +177,15 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
 
         <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant flex flex-col justify-between">
           <div className="flex justify-between items-center mb-6">
-            <h4 className="text-sm font-bold text-primary">Hourly Concentration Flow</h4>
+            <h4 className="text-sm font-bold text-primary">시간대별 집중도 흐름 (Hourly Concentration Flow)</h4>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-full bg-primary" />
-                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider">HIGH FOCUS</span>
+                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider">높은 집중 (HIGH FOCUS)</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-full bg-secondary-container" />
-                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider">MILD FOCUS</span>
+                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider">일반 집중 (MILD FOCUS)</span>
               </div>
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
 
                   <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
                     <div className="bg-inverse-surface text-inverse-on-surface text-[9px] font-bold font-mono px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap">
-                      Concentration: {bar.pct}% {bar.isPeak ? '(Peak)' : ''}
+                      집중도: {bar.pct}% {bar.isPeak ? '(최고조)' : ''}
                     </div>
                   </div>
                 </div>
@@ -217,17 +217,17 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
           <div className="mt-6 pt-5 border-t border-outline-variant flex items-center justify-between">
             <div className="flex gap-6">
               <div className="flex flex-col">
-                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider uppercase">AVG DURATION</span>
+                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider uppercase">평균 지속 시간 (AVG DURATION)</span>
                 <span className="text-sm font-bold text-primary">52 mins</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider uppercase">SESSIONS</span>
+                <span className="font-mono text-[9px] font-bold text-on-surface-variant tracking-wider uppercase">세션 (SESSIONS)</span>
                 <span className="text-sm font-bold text-primary">8 Deep Focus</span>
               </div>
             </div>
 
             <button className="text-xs font-semibold text-secondary flex items-center gap-0.5 hover:underline cursor-pointer">
-              View Detailed Log
+              상세 로그 보기 (View Detailed Log)
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -240,12 +240,12 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
             </div>
             <div>
               <h5 className="font-mono text-[9px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                Vs. Last Week
+                지난주 대비 (Vs. Last Week)
               </h5>
               <p className="text-lg font-bold text-primary">
                 +1h 12m <span className="text-xs font-normal text-on-surface-variant">(18.4%)</span>
               </p>
-              <p className="text-xs text-on-surface-variant mt-1">Your total focus time is trending upwards consistently.</p>
+              <p className="text-xs text-on-surface-variant mt-1">총 집중 시간이 지속적으로 증가하는 추세입니다.</p>
             </div>
           </div>
 
