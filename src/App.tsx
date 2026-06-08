@@ -215,6 +215,7 @@ export default function App() {
                 }} 
                 settings={settings}
                 editingTask={editingTask}
+                tasks={tasks}
               />
             )}
 
