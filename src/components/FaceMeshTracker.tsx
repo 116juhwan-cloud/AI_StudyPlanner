@@ -369,12 +369,12 @@ export function FaceMeshTracker({ onClose }: FaceMeshTrackerProps) {
       </div>
 
       {/* Camera Live Feed & Mesh Container */}
-      <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-primary/20 bg-slate-950/90 shadow-xl mb-5 group">
+      <div className="relative w-full aspect-[4/3] shrink-0 rounded-2xl overflow-hidden border border-primary/20 bg-slate-950/90 shadow-xl mb-5 group">
 
         {/* Hidden video element for MediaPipe stream */}
         <video
           ref={videoRef}
-          className="hidden"
+          style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
           playsInline
           muted
         />
@@ -384,7 +384,7 @@ export function FaceMeshTracker({ onClose }: FaceMeshTrackerProps) {
           ref={canvasRef}
           width={480}
           height={360}
-          className="w-full h-full object-cover transform scale-x-1"
+          className="w-full h-full object-cover"
         />
 
         {/* Loading Spinner */}
