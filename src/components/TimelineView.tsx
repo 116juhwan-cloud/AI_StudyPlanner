@@ -22,8 +22,18 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
     })
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+  const formatDuration = (minutes?: number) => {
+    if (!minutes || minutes <= 0) return '';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0 && m > 0) return `${h}시간 ${m}분`;
+    if (h > 0) return `${h}시간`;
+    return `${m}분`;
+  };
+
   const computeStats = () => {
     let totalMinutes = 0;
+    let totalEstimatedMinutes = 0;
     const subjectMinutes: Record<string, number> = {};
 
     tasks.forEach((t) => {
@@ -36,6 +46,12 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
         
         totalMinutes += diffMins;
         subjectMinutes[t.subject] = (subjectMinutes[t.subject] || 0) + diffMins;
+
+        if (t.estimatedTime && t.estimatedTime > 0) {
+          totalEstimatedMinutes += t.estimatedTime;
+        } else {
+          totalEstimatedMinutes += diffMins;
+        }
       }
     });
 
@@ -43,18 +59,25 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
     const minutes = totalMinutes % 60;
     const totalHoursString = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`;
 
+    const estHours = Math.floor(totalEstimatedMinutes / 60);
+    const estMinutes = totalEstimatedMinutes % 60;
+    const totalEstimatedString = estHours > 0 || estMinutes > 0
+      ? `${estHours > 0 ? `${estHours}시간 ` : ''}${estMinutes > 0 ? `${estMinutes}분` : ''}`
+      : '0분';
+
     const goal = 480; 
     const percentage = goal > 0 ? Math.round((totalMinutes / goal) * 100) : 0;
 
     return {
       totalHoursString,
       totalMinutes,
+      totalEstimatedString,
       percentage,
       subjectMinutes
     };
   };
 
-  const { totalHoursString, percentage, subjectMinutes } = computeStats();
+  const { totalHoursString, totalEstimatedString, percentage, subjectMinutes } = computeStats();
 
   const formatDateHeader = (dateStr: string) => {
     const replaced = dateStr.replace(/-/g, '.');
@@ -159,7 +182,8 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
           <div className="bg-primary text-on-primary p-6 rounded-2xl shadow-md relative overflow-hidden">
             <div className="relative z-10">
               <p className="font-mono text-[10px] font-semibold text-on-primary-container tracking-wider uppercase opacity-80 mb-1">TOTAL STUDY TIME</p>
-              <h3 className="text-4xl font-black mb-3">{totalHoursString}</h3>
+              <h3 className="text-4xl font-black mb-1">{totalHoursString}</h3>
+              <p className="text-xs text-white/80 font-medium mb-3">⏱️ 총 예상 학습 시간: {totalEstimatedString}</p>
               <div className="flex items-center gap-1 text-secondary-fixed text-xs font-semibold">
                 <Award className="w-3.5 h-3.5" />
                 <span>15% more than yesterday</span>
@@ -316,13 +340,18 @@ export default function TimelineView({ tasks, onDeleteTask, onNavigateToAddTask 
                           {t.notes || "기록된 메모가 없습니다."}
                         </p>
 
-                        <div className="flex gap-1.5 items-center mt-3">
+                         <div className="flex gap-1.5 flex-wrap items-center mt-3">
                           <span className="text-[10px] bg-surface-container-high/60 border border-outline-variant/30 text-on-surface px-2 py-0.5 rounded font-medium">
                             {t.subject}
                           </span>
+                          {t.estimatedTime && t.estimatedTime > 0 && (
+                            <span className="text-[10px] bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded font-bold">
+                              ⏱️ 예상 소요: {formatDuration(t.estimatedTime)}
+                            </span>
+                          )}
                           {!t.isAllDay && (
                             <span className="text-[10px] text-on-surface-variant font-medium">
-                              ⏱️ {t.startTime} ~ {t.endTime}
+                              ⏱️ 계획 시간: {t.startTime} ~ {t.endTime}
                             </span>
                           )}
                         </div>
