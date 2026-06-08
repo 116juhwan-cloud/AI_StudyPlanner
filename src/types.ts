@@ -9,6 +9,7 @@ export interface Task {
   subject: string; // e.g. "수학", "과학", "영어", "경제학", etc.
   notes: string;
   focusLevel?: 'Main' | 'Focus'; // Main: ordinary task, Focus: intense deep work
+  estimatedTime?: number; // Estimated duration in minutes
 }
 
 export interface UserProfile {

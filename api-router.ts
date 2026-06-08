@@ -18,6 +18,7 @@ interface Task {
   subject: string;
   notes: string;
   focusLevel?: 'Main' | 'Focus';
+  estimatedTime?: number; // Estimated duration in minutes
 }
 
 let tasks: Task[] = [
@@ -31,7 +32,8 @@ let tasks: Task[] = [
     endTime: "11:30",
     subject: "수학",
     notes: "Integration methods and series convergence exercises.",
-    focusLevel: "Main"
+    focusLevel: "Main",
+    estimatedTime: 150
   },
   {
     id: "2",
@@ -43,7 +45,8 @@ let tasks: Task[] = [
     endTime: "16:15",
     subject: "과학",
     notes: "Deep focus session on Dynamic Programming and Graphs. Completed all set tasks.",
-    focusLevel: "Focus"
+    focusLevel: "Focus",
+    estimatedTime: 195
   },
   {
     id: "3",
@@ -55,7 +58,8 @@ let tasks: Task[] = [
     endTime: "18:45",
     subject: "영어",
     notes: "Reading T.S. Eliot and taking analysis notes.",
-    focusLevel: "Main"
+    focusLevel: "Main",
+    estimatedTime: 105
   },
   {
     id: "4",
@@ -67,7 +71,8 @@ let tasks: Task[] = [
     endTime: "20:45",
     subject: "경제학",
     notes: "Maxwell's equations review and problem set #4.",
-    focusLevel: "Main"
+    focusLevel: "Main",
+    estimatedTime: 75
   }
 ];
 

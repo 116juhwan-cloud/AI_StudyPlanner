@@ -13,10 +13,10 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
   const [title, setTitle] = useState('');
   const [isAllDay, setIsAllDay] = useState(false);
   
-  const [startDate, setStartDate] = useState('2023-11-24');
+  const [dueDate, setDueDate] = useState('2023-11-24');
   const [startTime, setStartTime] = useState('09:00');
-  const [endDate, setEndDate] = useState('2023-11-24');
-  const [endTime, setEndTime] = useState('11:00');
+  const [estimatedHours, setEstimatedHours] = useState(1);
+  const [estimatedMinutes, setEstimatedMinutes] = useState(30);
 
   const [subjects, setSubjects] = useState<string[]>(['수학', '과학', '영어', '경제학']);
   const [selectedSubject, setSelectedSubject] = useState('수학');
@@ -24,6 +24,17 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
 
   const [newSubjectInput, setNewSubjectInput] = useState('');
   const [isAddingSubject, setIsAddingSubject] = useState(false);
+
+  const calculateEndTime = (startStr: string, durationMinutes: number): string => {
+    if (!startStr) return '00:00';
+    const [h, m] = startStr.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    date.setMinutes(date.getMinutes() + durationMinutes);
+    const endH = String(date.getHours()).padStart(2, '0');
+    const endM = String(date.getMinutes()).padStart(2, '0');
+    return `${endH}:${endM}`;
+  };
 
   const handleAddSubject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,20 +50,24 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
 
   const handleSave = () => {
     if (!title.trim()) {
-      alert('일정 제목을 입력해 주세요.');
+      alert('공부할 내용을 입력해 주세요.');
       return;
     }
+
+    const durationMinutes = estimatedHours * 60 + estimatedMinutes;
+    const calculatedEndTime = isAllDay ? '23:59' : calculateEndTime(startTime, durationMinutes);
 
     onAddTask({
       title: title.trim(),
       isAllDay,
-      startDate,
+      startDate: dueDate,
       startTime: isAllDay ? '00:00' : startTime,
-      endDate,
-      endTime: isAllDay ? '23:59' : endTime,
+      endDate: dueDate,
+      endTime: calculatedEndTime,
       subject: selectedSubject,
       notes: notes.trim(),
-      focusLevel: Math.random() > 0.4 ? 'Main' : 'Focus'
+      focusLevel: Math.random() > 0.4 ? 'Main' : 'Focus',
+      estimatedTime: durationMinutes
     });
 
     setTitle('');
@@ -94,7 +109,15 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
     setTitle(template.title);
     setSelectedSubject(template.subject);
     setStartTime(template.startTime);
-    setEndTime(template.endTime);
+    
+    // Parse duration to set estimated hours and minutes
+    const [sh, sm] = template.startTime.split(':').map(Number);
+    const [eh, em] = template.endTime.split(':').map(Number);
+    let diffMins = (eh * 60 + em) - (sh * 60 + sm);
+    if (diffMins < 0) diffMins += 24 * 60;
+    
+    setEstimatedHours(Math.floor(diffMins / 60));
+    setEstimatedMinutes(diffMins % 60);
     setNotes(template.notes);
   };
 
@@ -120,81 +143,129 @@ export default function ScheduleView({ onAddTask, onNavigateBack, settings }: Sc
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-        {/* Title Input */}
+        {/* 공부할 내용 Input */}
         <div className="space-y-1">
-          <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Title</label>
+          <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider">공부할 내용 (Study Content)</label>
           <input 
             type="text" 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-on-surface-variant/40" 
-            placeholder="어떤 공부를 계획 중인가요?"
+            placeholder="어떤 공부를 계획 중인가요? (예: 영어 단어 50개 암기)"
           />
         </div>
 
-        {/* All Day Toggle */}
-        <div className="flex justify-between items-center bg-surface-container-low p-4 rounded-xl border border-outline-variant">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-primary" />
-            <span className="text-sm font-semibold text-on-surface">하루 종일</span>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
+        {/* 마감일 & 예상소요 시간 & 시간 설정 */}
+        <div className="space-y-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+          {/* 마감일 Input */}
+          <div className="space-y-1">
+            <label className="font-mono text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block">마감일 (Due Date)</label>
             <input 
-              type="checkbox" 
-              checked={isAllDay}
-              onChange={(e) => setIsAllDay(e.target.checked)}
-              className="sr-only peer"
+              type="date" 
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary focus:ring-1"
             />
-            <div className="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-          </label>
-        </div>
+          </div>
 
-        {/* Date & Time Picker */}
-        <div className={`space-y-4 transition-opacity duration-200 ${isAllDay ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Start Field */}
-            <div className="space-y-1">
-              <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Start</label>
-              <div className="flex flex-col gap-2">
-                <input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary focus:ring-1"
-                />
+          {/* 예상소요 시간 */}
+          <div className="space-y-2">
+            <label className="font-mono text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block">예상소요 시간 (Estimated Time)</label>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <select
+                  value={estimatedHours}
+                  onChange={(e) => setEstimatedHours(Number(e.target.value))}
+                  className="bg-surface border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-primary focus:ring-1"
+                >
+                  {Array.from({ length: 13 }, (_, i) => (
+                    <option key={i} value={i}>{i}시간</option>
+                  ))}
+                </select>
+                <select
+                  value={estimatedMinutes}
+                  onChange={(e) => setEstimatedMinutes(Number(e.target.value))}
+                  className="bg-surface border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-primary focus:ring-1"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i * 5).map((min) => (
+                    <option key={min} value={min}>{min}분</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Presets */}
+              <div className="flex flex-wrap gap-1">
+                {[
+                  { label: '30분', h: 0, m: 30 },
+                  { label: '1시간', h: 1, m: 0 },
+                  { label: '1.5시간', h: 1, m: 30 },
+                  { label: '2시간', h: 2, m: 0 },
+                  { label: '3시간', h: 3, m: 0 },
+                ].map((preset) => {
+                  const isActive = estimatedHours === preset.h && estimatedMinutes === preset.m;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setEstimatedHours(preset.h);
+                        setEstimatedMinutes(preset.m);
+                      }}
+                      className={`px-2.5 py-1.5 text-[10px] font-bold rounded-lg border transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-primary border-primary text-on-primary shadow-sm'
+                          : 'bg-surface border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* All Day Toggle */}
+          <div className="flex justify-between items-center pt-2 border-t border-outline-variant/60">
+            <span className="text-xs font-semibold text-on-surface">하루 종일 (All Day)</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={isAllDay}
+                onChange={(e) => setIsAllDay(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          {/* Time Picker */}
+          {!isAllDay && (
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-outline-variant/60">
+              <div className="space-y-1">
+                <label className="font-mono text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">시작 시간 (Start Time)</label>
                 <input 
                   type="time" 
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary focus:ring-1"
+                  className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary focus:ring-1"
                 />
               </div>
-            </div>
 
-            {/* End Field */}
-            <div className="space-y-1">
-              <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider">End</label>
-              <div className="flex flex-col gap-2">
-                <input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary focus:ring-1"
-                />
-                <input 
-                  type="time" 
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary focus:ring-1"
-                />
+              <div className="space-y-1 flex flex-col justify-end">
+                <label className="font-mono text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">종료 예정 시간 (End Time)</label>
+                <div className="w-full bg-surface-container border border-outline-variant/60 rounded-lg px-3 py-2 text-xs font-bold text-primary flex items-center gap-1.5 h-[34px]">
+                  <span>⏱️</span>
+                  <span>{calculateEndTime(startTime, estimatedHours * 60 + estimatedMinutes)} 종료</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Subject Selection */}
         <div className="space-y-2">
-          <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">Subject</label>
+          <label className="font-mono text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">과목명 (Subject)</label>
           <div className="flex flex-wrap gap-2 items-center">
             {subjects.map((sub) => {
               const isSelected = selectedSubject === sub;
