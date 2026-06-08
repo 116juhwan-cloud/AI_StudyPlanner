@@ -217,7 +217,7 @@ export default function App() {
             <p className="text-sm text-on-surface-variant font-semibold">데이터를 유기적으로 가져오고 있습니다...</p>
           </div>
         ) : (
-          <div className={`flex-1 w-full mx-auto animate-fade-in ${activeTab === 'calendar' ? 'max-w-[95%]' : 'max-w-5xl'}`}>
+          <div className={`flex-1 w-full mx-auto animate-fade-in ${(activeTab === 'calendar' || activeTab === 'schedule') ? 'max-w-[95%]' : 'max-w-5xl'}`}>
             {activeTab === 'schedule' && (
               <ScheduleView
                 onSaveTask={handleSaveTask}

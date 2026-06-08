@@ -198,7 +198,7 @@ export default function ScheduleView({
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
     return (
-      <div className="w-full h-full bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm flex flex-col border border-outline-variant min-h-[500px]">
+      <div className="w-full h-full bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm flex flex-col border border-outline-variant min-h-[calc(100vh-100px)]">
         <div className="p-6 flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-on-surface">{year}년 {monthNames[month]}</h2>

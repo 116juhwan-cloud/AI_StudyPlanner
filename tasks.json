@@ -60,5 +60,35 @@
     "isCompleted": false,
     "importance": "High",
     "id": "pfdesnt"
+  },
+  {
+    "title": "운영체제",
+    "isAllDay": false,
+    "startDate": "2026-06-19",
+    "startTime": "15:00",
+    "endDate": "2026-06-19",
+    "endTime": "15:30",
+    "subject": "전공",
+    "notes": "",
+    "focusLevel": "Main",
+    "estimatedTime": 30,
+    "isCompleted": false,
+    "importance": "High",
+    "id": "r36weqj"
+  },
+  {
+    "title": "기초시스템",
+    "isAllDay": false,
+    "startDate": "2026-06-19",
+    "startTime": "17:00",
+    "endDate": "2026-06-19",
+    "endTime": "18:00",
+    "subject": "전공",
+    "notes": "",
+    "focusLevel": "Main",
+    "estimatedTime": 60,
+    "isCompleted": false,
+    "importance": "Low",
+    "id": "7emet0b"
   }
 ]

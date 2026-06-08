@@ -50,7 +50,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
                   <Icon className="w-5 h-5 shrink-0" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </button>
-              </td>
+              </li>
             );
           })}
         </ul>
