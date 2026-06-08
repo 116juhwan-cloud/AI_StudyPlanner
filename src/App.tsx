@@ -8,6 +8,7 @@ import StatisticsView from './components/StatisticsView';
 import SettingsView from './components/SettingsView';
 import { FaceMeshTracker } from './components/FaceMeshTracker';
 import CalendarView from './components/CalendarView';
+import AiCoachPopup from './components/AiCoachPopup';
 
 export default function App() {
   // Authentication states
@@ -24,6 +25,9 @@ export default function App() {
 
   // AI Focus Tracker state
   const [isAiTrackerOpen, setIsAiTrackerOpen] = useState<boolean>(false);
+
+  // 초대형 AI 독촉 팝업을 껐다 켤 스위치
+  const [showAiPopup, setShowAiPopup] = useState<boolean>(false);
 
   // Application configurations
   const [settings, setSettings] = useState<AppSettings>({
@@ -48,10 +52,10 @@ export default function App() {
     const root = window.document.documentElement;
     if (settings.theme === 'dark') {
       root.classList.add('dark');
-      root.style.backgroundColor = '#15232a'; // matches tertiary color
+      root.style.backgroundColor = '#15232a';
     } else {
       root.classList.remove('dark');
-      root.style.backgroundColor = '#f7f9fb'; // matches bright bg
+      root.style.backgroundColor = '#f7f9fb';
     }
   }, [settings.theme]);
 
@@ -79,7 +83,6 @@ export default function App() {
   // Handler to add or update a study plan
   const handleSaveTask = async (taskData: Omit<Task, 'id'>) => {
     if (editingTask) {
-      // Update existing task
       const updatedTask: Task = { ...taskData, id: editingTask.id };
       setTasks((prev) => prev.map(t => t.id === editingTask.id ? updatedTask : t));
       setEditingTask(null);
@@ -101,20 +104,16 @@ export default function App() {
         console.error("Network error updating task:", err);
       }
     } else {
-      // Add new task
       const tempId = Math.random().toString(36).substring(2, 9);
       const newTask: Task = { ...taskData, id: tempId };
 
-      // Update state instantly for hyper-fast response
       setTasks((prev) => [...prev, newTask]);
 
-      // Switch view back to the originating tab
       setActiveTab(fromTab);
       setPreselectedDate(null);
       setPreselectedStartTime(null);
       setPreselectedDuration(null);
 
-      // Post to express backend API
       try {
         const response = await fetch('/api/tasks', {
           method: 'POST',
@@ -138,7 +137,6 @@ export default function App() {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        // 기존 데이터를 유지하면서 isCompleted만 변경하여 전송
         body: JSON.stringify({ ...tasks.find(t => t.id === id), isCompleted }),
       });
       if (!response.ok) {
@@ -149,17 +147,22 @@ export default function App() {
     }
   };
 
-  // Handler to trigger edit
+  // 📌 [매운맛 장치] 알림에서 '나중에 하기' 누르면 강제로 잔소리 모드로 전환하고 큰 팝업 띄우기
+  const handlePostponeStudy = () => {
+    setSettings(prev => ({
+      ...prev,
+      aiPersona: '잔소리쟁이'
+    }));
+    setShowAiPopup(true);
+  };
+
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setActiveTab('schedule');
   };
 
-  // Handler to remove task
   const handleDeleteTask = async (id: string) => {
-    // Delete state instantly
     setTasks((prev) => prev.filter((t) => t.id !== id));
-
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
@@ -172,29 +175,18 @@ export default function App() {
     }
   };
 
-  // Login handlers
   const handleLoginSuccess = (email: string, name: string, avatarUrl: string) => {
-    setUser({
-      name,
-      email,
-      avatarUrl,
-      membership: 'Premium Member'
-    });
+    setUser({ name, email, avatarUrl, membership: 'Premium Member' });
     setIsLoggedIn(true);
     setActiveTab('timeline');
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
+  const handleLogout = () => { setIsLoggedIn(false); };
 
-  if (!isLoggedIn) {
-    return <AuthPage onLoginSuccess={handleLoginSuccess} />;
-  }
+  if (!isLoggedIn) { return <AuthPage onLoginSuccess={handleLoginSuccess} />; }
 
   return (
     <div className={`min-h-screen ${settings.theme === 'dark' ? 'bg-[#15232a] text-white' : 'bg-background text-on-surface'}`}>
-      {/* Sidebar layouts on desktop */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -204,12 +196,18 @@ export default function App() {
         setIsAiTrackerOpen={setIsAiTrackerOpen}
       />
 
-      {/* AI Focus Tracker Overlay */}
       {isAiTrackerOpen && (
         <FaceMeshTracker onClose={() => setIsAiTrackerOpen(false)} />
       )}
 
-      {/* Main workspace container canvas */}
+      {/* 초대형 AI 코치 팝업 구역 */}
+      {showAiPopup && (
+        <AiCoachPopup
+          persona={settings.aiPersona as any}
+          onClose={() => setShowAiPopup(false)}
+        />
+      )}
+
       <div className="ml-64 min-h-screen relative p-10 flex flex-col">
         {isLoading && tasks.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center animate-pulse py-12">
@@ -218,6 +216,18 @@ export default function App() {
           </div>
         ) : (
           <div className={`flex-1 w-full mx-auto animate-fade-in ${(activeTab === 'calendar' || activeTab === 'schedule') ? 'max-w-[95%]' : 'max-w-5xl'}`}>
+
+            {activeTab === 'schedule' && (
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={() => setShowAiPopup(true)}
+                  className="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-purple-700 transition-all"
+                >
+                  🤖 [{settings.aiPersona} 모드] 알림 타격감 테스트 버튼
+                </button>
+              </div>
+            )}
+
             {activeTab === 'schedule' && (
               <ScheduleView
                 onSaveTask={handleSaveTask}
@@ -234,6 +244,7 @@ export default function App() {
                 preselectedStartTime={preselectedStartTime}
                 preselectedDuration={preselectedDuration}
                 tasks={tasks}
+                onPostponeStudy={handlePostponeStudy} // 📌 배달완료!
               />
             )}
 
@@ -279,10 +290,7 @@ export default function App() {
             )}
 
             {activeTab === 'statistics' && (
-              <StatisticsView
-                tasks={tasks}
-                settings={settings}
-              />
+              <StatisticsView tasks={tasks} settings={settings} />
             )}
 
             {activeTab === 'settings' && (

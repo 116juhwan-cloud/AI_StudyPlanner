@@ -3,9 +3,9 @@
     "title": "Toeic part5",
     "isAllDay": false,
     "startDate": "2026-06-09",
-    "startTime": "01:00",
+    "startTime": "05:05",
     "endDate": "2026-06-09",
-    "endTime": "03:00",
+    "endTime": "07:05",
     "subject": "영어",
     "notes": "",
     "focusLevel": "Focus",
@@ -90,5 +90,20 @@
     "isCompleted": false,
     "importance": "Low",
     "id": "7emet0b"
+  },
+  {
+    "title": "미적분 II: 삼각함수의 극한 연습문제",
+    "isAllDay": false,
+    "startDate": "2026-06-18",
+    "startTime": "11:00",
+    "endDate": "2026-06-18",
+    "endTime": "13:30",
+    "subject": "수학",
+    "notes": "적분 기법 풀이 및 무한 급수 수렴성 판단 교재 53-62페이지 오답노트 작성",
+    "focusLevel": "Focus",
+    "estimatedTime": 150,
+    "isCompleted": false,
+    "importance": "Medium",
+    "id": "4u73otz"
   }
 ]
