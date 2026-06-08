@@ -119,6 +119,25 @@ export default function App() {
     }
   };
 
+  // 완료 상태 토글 핸들러
+  const handleToggleTask = async (id: string, isCompleted: boolean) => {
+    setTasks((prev) => prev.map(t => t.id === id ? { ...t, isCompleted } : t));
+    
+    try {
+      const response = await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        // 기존 데이터를 유지하면서 isCompleted만 변경하여 전송
+        body: JSON.stringify({ ...tasks.find(t => t.id === id), isCompleted }),
+      });
+      if (!response.ok) {
+        console.error("Backend error toggling task status");
+      }
+    } catch (err) {
+      console.error("Network error toggling task:", err);
+    }
+  };
+
   // Handler to trigger edit
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -204,6 +223,7 @@ export default function App() {
                 tasks={tasks}
                 onDeleteTask={handleDeleteTask}
                 onEditTask={handleEditTask}
+                onToggleTask={handleToggleTask}
                 onNavigateToAddTask={() => {
                   setEditingTask(null);
                   setActiveTab('schedule');

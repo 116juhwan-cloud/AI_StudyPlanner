@@ -10,6 +10,7 @@ export interface Task {
   notes: string;
   focusLevel?: 'Main' | 'Focus'; // Main: ordinary task, Focus: intense deep work
   estimatedTime?: number; // Estimated duration in minutes
+  isCompleted: boolean;
 }
 
 export interface UserProfile {

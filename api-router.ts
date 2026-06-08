@@ -1,12 +1,15 @@
 import { Router } from "express";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
 export const apiRouter = Router();
 
-// In-memory task store
+const TASKS_FILE = path.join(process.cwd(), "tasks.json");
+
 interface Task {
   id: string;
   title: string;
@@ -19,62 +22,23 @@ interface Task {
   notes: string;
   focusLevel?: 'Main' | 'Focus';
   estimatedTime?: number; // Estimated duration in minutes
+  isCompleted: boolean;
 }
 
-let tasks: Task[] = [
-  {
-    id: "1",
-    title: "Mathematics: Calculus II",
-    isAllDay: false,
-    startDate: "2023-11-24",
-    startTime: "09:00",
-    endDate: "2023-11-24",
-    endTime: "11:30",
-    subject: "수학",
-    notes: "Integration methods and series convergence exercises.",
-    focusLevel: "Main",
-    estimatedTime: 150
-  },
-  {
-    id: "2",
-    title: "CS: Algorithm Design",
-    isAllDay: false,
-    startDate: "2023-11-24",
-    startTime: "13:00",
-    endDate: "2023-11-24",
-    endTime: "16:15",
-    subject: "과학",
-    notes: "Deep focus session on Dynamic Programming and Graphs. Completed all set tasks.",
-    focusLevel: "Focus",
-    estimatedTime: 195
-  },
-  {
-    id: "3",
-    title: "English: Modern Poetry",
-    isAllDay: false,
-    startDate: "2023-11-24",
-    startTime: "17:00",
-    endDate: "2023-11-24",
-    endTime: "18:45",
-    subject: "영어",
-    notes: "Reading T.S. Eliot and taking analysis notes.",
-    focusLevel: "Main",
-    estimatedTime: 105
-  },
-  {
-    id: "4",
-    title: "Physics: Electromagnetism",
-    isAllDay: false,
-    startDate: "2023-11-24",
-    startTime: "19:30",
-    endDate: "2023-11-24",
-    endTime: "20:45",
-    subject: "경제학",
-    notes: "Maxwell's equations review and problem set #4.",
-    focusLevel: "Main",
-    estimatedTime: 75
+// 파일에서 데이터 불러오기
+let tasks: Task[] = [];
+try {
+  if (fs.existsSync(TASKS_FILE)) {
+    const data = fs.readFileSync(TASKS_FILE, "utf-8");
+    tasks = JSON.parse(data);
   }
-];
+} catch (error) {
+  console.error("Failed to load tasks from file:", error);
+}
+
+const saveTasksToFile = () => {
+  fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2));
+};
 
 let aiClient: GoogleGenAI | null = null;
 function getGenAI(): GoogleGenAI | null {
@@ -108,12 +72,14 @@ apiRouter.post("/tasks", (req, res) => {
     newTask.id = Math.random().toString(36).substring(2, 9);
   }
   tasks.push(newTask);
+  saveTasksToFile();
   res.status(201).json(newTask);
 });
 
 apiRouter.delete("/tasks/:id", (req, res) => {
   const id = req.params.id;
   tasks = tasks.filter(t => t.id !== id);
+  saveTasksToFile();
   res.json({ success: true });
 });
 
@@ -121,6 +87,7 @@ apiRouter.put("/tasks/:id", (req, res) => {
   const id = req.params.id;
   const updatedTask = req.body as Task;
   tasks = tasks.map(t => t.id === id ? { ...t, ...updatedTask, id } : t);
+  saveTasksToFile();
   res.json({ success: true });
 });
 
@@ -141,7 +108,7 @@ apiRouter.post("/ai-feedback", async (req, res) => {
       return res.json({ text: advice, source: "fallback" });
     }
 
-    const tasksSummary = taskList && taskList.length > 0 
+    const tasksSummary = taskList && taskList.length > 0
       ? taskList.map((t: any) => `- ${t.title} (${t.subject}, 시간: ${t.startTime}~${t.endTime}, 노트: ${t.notes})`).join("\n")
       : "등록된 학습 일정이 없습니다.";
 
@@ -157,7 +124,7 @@ apiRouter.post("/ai-feedback", async (req, res) => {
     const prompt = `학습 일정 목록:\n${tasksSummary}\n\n존경하는 위인 (이 위인의 어조나 명언 스타일을 반영하여 피드백): ${quoteCategory || "이순신"}\n현재 시간: ${new Date().toISOString()}\n\n위의 일정을 분석하고 한국어로 2-3문장의 맞춤형 피드백 조언을 작성해 주세요. \n단락 구분 없이 하나의 가볍고 읽기 편한 문장 그룹(마크다운 형식 불가)으로 작성 부탁드립니다.`;
 
     const response = await aiInstance.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: {
         systemInstruction: personaInstruction,
