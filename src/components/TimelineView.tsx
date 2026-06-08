@@ -279,7 +279,7 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onToggle
             </span>
             <input
               type="text"
-              placeholder="Search records..."
+              placeholder="학습 기록 검색... (Search records...)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-4 py-2 bg-surface-container rounded-full border-none focus:outline-none focus:ring-1 focus:ring-primary w-60 text-sm"
@@ -326,7 +326,7 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onToggle
           </div>
 
           <div className="h-8 w-[1px] bg-outline-variant mx-1" />
-          <button onClick={() => alert('학습 데이터가 서버에 안전하게 저장되어 있습니다.')} className="text-sm font-semibold text-primary hover:underline cursor-pointer">Save</button>
+          <button onClick={() => alert('학습 데이터가 서버에 안전하게 저장되어 있습니다.')} className="text-sm font-semibold text-primary hover:underline cursor-pointer">저장 (Save)</button>
         </div>
       </div>
 
@@ -367,12 +367,12 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onToggle
         <div className="col-span-12 lg:col-span-4 space-y-6">
           <div className="bg-primary text-on-primary p-6 rounded-2xl shadow-md relative overflow-hidden">
             <div className="relative z-10">
-              <p className="font-mono text-[10px] font-semibold text-on-primary-container tracking-wider uppercase opacity-80 mb-1">TOTAL STUDY TIME</p>
+              <p className="font-mono text-[10px] font-semibold text-on-primary-container tracking-wider uppercase opacity-80 mb-1">총 학습 시간 (TOTAL STUDY TIME)</p>
               <h3 className="text-4xl font-black mb-1">{totalHoursString}</h3>
               <p className="text-xs text-white/80 font-medium mb-3">⏱️ 총 예상 학습 시간: {totalEstimatedString}</p>
               <div className="flex items-center gap-1 text-secondary-fixed text-xs font-semibold">
                 <Award className="w-3.5 h-3.5" />
-                <span>15% more than yesterday</span>
+                <span>어제보다 15% 증가 (15% more)</span>
               </div>
             </div>
             <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-secondary-container/20 rounded-full blur-[40px] pointer-events-none" />
@@ -380,12 +380,12 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onToggle
 
           <div className="bg-surface-container-high p-5 rounded-2xl shadow-sm flex justify-around items-center border border-outline-variant/20">
             <div className="text-center">
-              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Completed</p>
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">완료 (Completed)</p>
               <p className="text-2xl font-black text-primary">{completedCount}</p>
             </div>
             <div className="w-[1px] h-8 bg-outline-variant" />
             <div className="text-center">
-              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Remaining</p>
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">남음 (Remaining)</p>
               <p className="text-2xl font-black text-secondary">{remainingCount}</p>
             </div>
           </div>
@@ -428,9 +428,9 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onToggle
                 <Award className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-on-surface">Daily Goal: 8 Hours</p>
+                <p className="text-sm font-bold text-on-surface">일일 목표 (Daily Goal): 8시간</p>
                 <p className="font-mono text-[10px] font-semibold text-on-surface-variant tracking-wider uppercase">
-                  Achieved {percentage}%
+                  달성률 {percentage}% (Achieved)
                 </p>
               </div>
             </div>
@@ -653,7 +653,7 @@ export default function TimelineView({ tasks, onDeleteTask, onEditTask, onToggle
                     21:00
                   </span>
                   <p className="text-[10px] font-mono text-outline uppercase tracking-widest font-bold">
-                    End of scheduled session
+                    일정 종료 (End of session)
                   </p>
                 </div>
               </div>

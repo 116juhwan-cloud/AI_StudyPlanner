@@ -87,7 +87,7 @@ export default function App() {
       setPreselectedStartTime(null);
       setPreselectedDuration(null);
       setActiveTab(fromTab);
-      
+
       try {
         const response = await fetch(`/api/tasks/${updatedTask.id}`, {
           method: 'PUT',
@@ -107,7 +107,7 @@ export default function App() {
 
       // Update state instantly for hyper-fast response
       setTasks((prev) => [...prev, newTask]);
-      
+
       // Switch view back to the originating tab
       setActiveTab(fromTab);
       setPreselectedDate(null);
@@ -133,7 +133,7 @@ export default function App() {
   // 완료 상태 토글 핸들러
   const handleToggleTask = async (id: string, isCompleted: boolean) => {
     setTasks((prev) => prev.map(t => t.id === id ? { ...t, isCompleted } : t));
-    
+
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'PUT',
@@ -172,6 +172,7 @@ export default function App() {
     }
   };
 
+  // Login handlers
   const handleLoginSuccess = (email: string, name: string, avatarUrl: string) => {
     setUser({
       name,
@@ -194,11 +195,11 @@ export default function App() {
   return (
     <div className={`min-h-screen ${settings.theme === 'dark' ? 'bg-[#15232a] text-white' : 'bg-background text-on-surface'}`}>
       {/* Sidebar layouts on desktop */}
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        user={user} 
-        onLogout={handleLogout} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        user={user}
+        onLogout={handleLogout}
         isAiTrackerOpen={isAiTrackerOpen}
         setIsAiTrackerOpen={setIsAiTrackerOpen}
       />
@@ -218,25 +219,26 @@ export default function App() {
         ) : (
           <div className={`flex-1 w-full mx-auto animate-fade-in ${activeTab === 'calendar' ? 'max-w-[95%]' : 'max-w-5xl'}`}>
             {activeTab === 'schedule' && (
-              <ScheduleView 
-                onSaveTask={handleSaveTask} 
+              <ScheduleView
+                onSaveTask={handleSaveTask}
                 onNavigateBack={() => {
                   setEditingTask(null);
                   setPreselectedDate(null);
                   setPreselectedStartTime(null);
                   setPreselectedDuration(null);
                   setActiveTab(fromTab);
-                }} 
+                }}
                 settings={settings}
                 editingTask={editingTask}
                 preselectedDate={preselectedDate}
                 preselectedStartTime={preselectedStartTime}
                 preselectedDuration={preselectedDuration}
+                tasks={tasks}
               />
             )}
 
             {activeTab === 'timeline' && (
-              <TimelineView 
+              <TimelineView
                 tasks={tasks}
                 onDeleteTask={handleDeleteTask}
                 onEditTask={(task) => {
@@ -256,7 +258,7 @@ export default function App() {
             )}
 
             {activeTab === 'calendar' && (
-              <CalendarView 
+              <CalendarView
                 tasks={tasks}
                 onDeleteTask={handleDeleteTask}
                 onEditTask={(task) => {
@@ -277,14 +279,14 @@ export default function App() {
             )}
 
             {activeTab === 'statistics' && (
-              <StatisticsView 
+              <StatisticsView
                 tasks={tasks}
                 settings={settings}
               />
             )}
 
             {activeTab === 'settings' && (
-              <SettingsView 
+              <SettingsView
                 user={user}
                 setUser={setUser}
                 settings={settings}

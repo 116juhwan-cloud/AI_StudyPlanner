@@ -13,11 +13,11 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiTrackerOpen, setIsAiTrackerOpen }: SidebarProps) {
   const navItems = [
-    { key: 'schedule' as const, label: 'Schedule', icon: Calendar },
-    { key: 'timeline' as const, label: 'Timeline', icon: History },
-    { key: 'calendar' as const, label: 'Calendar', icon: CalendarDays },
-    { key: 'statistics' as const, label: 'Statistics', icon: BarChart2 },
-    { key: 'settings' as const, label: 'Settings', icon: Settings },
+    { key: 'schedule' as const, label: '스케줄', icon: Calendar },
+    { key: 'timeline' as const, label: '타임라인', icon: History },
+    { key: 'calendar' as const, label: '캘린더', icon: CalendarDays },
+    { key: 'statistics' as const, label: '통계', icon: BarChart2 },
+    { key: 'settings' as const, label: '설정', icon: Settings },
   ];
 
   return (
@@ -25,7 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
       {/* Brand Header */}
       <div className="p-6">
         <h1 className="text-xl font-bold text-primary mb-1 tracking-tight">
-          Study Planner
+          스터디 플래너
         </h1>
         <p className="font-mono text-[10px] text-on-surface-variant font-bold tracking-widest uppercase">
           Academic Focus
@@ -42,16 +42,15 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
               <li key={item.key}>
                 <button
                   onClick={() => setActiveTab(item.key)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 cursor-pointer text-left ${
-                    isActive
-                      ? 'bg-secondary-container text-on-secondary-container font-semibold shadow-sm'
-                      : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 cursor-pointer text-left ${isActive
+                    ? 'bg-secondary-container text-on-secondary-container font-semibold shadow-sm'
+                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                    }`}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </button>
-              </li>
+              </td>
             );
           })}
         </ul>
@@ -62,11 +61,10 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
         {/* AI Focus Coach Button */}
         <button
           onClick={() => setIsAiTrackerOpen(!isAiTrackerOpen)}
-          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-3 border ${
-            isAiTrackerOpen
-              ? 'bg-rose-500 text-white border-rose-600 hover:bg-rose-600'
-              : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white border-transparent hover:opacity-95 shadow-md shadow-cyan-500/20'
-          }`}
+          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-3 border ${isAiTrackerOpen
+            ? 'bg-rose-500 text-white border-rose-600 hover:bg-rose-600'
+            : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white border-transparent hover:opacity-95 shadow-md shadow-cyan-500/20'
+            }`}
         >
           <span className="relative flex h-2 w-2">
             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isAiTrackerOpen ? 'bg-white' : 'bg-cyan-300'}`}></span>
@@ -80,7 +78,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
           className="w-full bg-primary text-on-primary py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-6"
         >
           <Plus className="w-4 h-4" />
-          New Task
+          새로운 할 일 (New Task)
         </button>
 
         {/* User profile card */}
@@ -100,8 +98,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
               </p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={onLogout}
             title="Logout"
             className="p-2 text-on-surface-variant hover:text-error transition-colors rounded-lg hover:bg-surface-container-high cursor-pointer flex justify-center items-center shrink-0"
