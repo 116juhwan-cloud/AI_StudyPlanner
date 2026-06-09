@@ -1,10 +1,10 @@
 import React from 'react';
 import { UserProfile } from '../types';
-import { Calendar, History, BarChart2, Settings, Plus, LogOut, CalendarDays } from 'lucide-react';
+import { Calendar, History, BarChart2, Settings, Plus, LogOut } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'schedule' | 'timeline' | 'calendar' | 'statistics' | 'settings';
-  setActiveTab: (tab: 'schedule' | 'timeline' | 'calendar' | 'statistics' | 'settings') => void;
+  activeTab: 'schedule' | 'timeline' | 'statistics' | 'settings';
+  setActiveTab: (tab: 'schedule' | 'timeline' | 'statistics' | 'settings') => void;
   user: UserProfile;
   onLogout: () => void;
   isAiTrackerOpen: boolean;
@@ -15,7 +15,6 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
   const navItems = [
     { key: 'schedule' as const, label: '스케줄', icon: Calendar },
     { key: 'timeline' as const, label: '타임라인', icon: History },
-    { key: 'calendar' as const, label: '캘린더', icon: CalendarDays },
     { key: 'statistics' as const, label: '통계', icon: BarChart2 },
     { key: 'settings' as const, label: '설정', icon: Settings },
   ];
@@ -42,10 +41,11 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
               <li key={item.key}>
                 <button
                   onClick={() => setActiveTab(item.key)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 cursor-pointer text-left ${isActive
-                    ? 'bg-secondary-container text-on-secondary-container font-semibold shadow-sm'
-                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 cursor-pointer text-left ${
+                    isActive
+                      ? 'bg-secondary-container text-on-secondary-container font-semibold shadow-sm'
+                      : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                  }`}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
                   <span className="text-sm font-medium">{item.label}</span>
@@ -61,10 +61,11 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
         {/* AI Focus Coach Button */}
         <button
           onClick={() => setIsAiTrackerOpen(!isAiTrackerOpen)}
-          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-3 border ${isAiTrackerOpen
-            ? 'bg-rose-500 text-white border-rose-600 hover:bg-rose-600'
-            : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white border-transparent hover:opacity-95 shadow-md shadow-cyan-500/20'
-            }`}
+          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm mb-3 border ${
+            isAiTrackerOpen
+              ? 'bg-rose-500 text-white border-rose-600 hover:bg-rose-600'
+              : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white border-transparent hover:opacity-95 shadow-md shadow-cyan-500/20'
+          }`}
         >
           <span className="relative flex h-2 w-2">
             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isAiTrackerOpen ? 'bg-white' : 'bg-cyan-300'}`}></span>
@@ -98,8 +99,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, isAiT
               </p>
             </div>
           </div>
-
-          <button
+          
+          <button 
             onClick={onLogout}
             title="Logout"
             className="p-2 text-on-surface-variant hover:text-error transition-colors rounded-lg hover:bg-surface-container-high cursor-pointer flex justify-center items-center shrink-0"

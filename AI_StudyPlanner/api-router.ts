@@ -10,8 +10,6 @@ export const apiRouter = Router();
 
 const TASKS_FILE = path.join(process.cwd(), "tasks.json");
 
-type ImportanceLevel = 'High' | 'Medium' | 'Low';
-
 interface Task {
   id: string;
   title: string;
@@ -25,7 +23,6 @@ interface Task {
   focusLevel?: 'Main' | 'Focus';
   estimatedTime?: number; // Estimated duration in minutes
   isCompleted: boolean;
-  importance?: ImportanceLevel;
 }
 
 // 파일에서 데이터 불러오기

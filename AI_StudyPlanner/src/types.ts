@@ -1,5 +1,3 @@
-export type ImportanceLevel = 'High' | 'Medium' | 'Low';
-
 export interface Task {
   id: string;
   title: string;
@@ -13,7 +11,6 @@ export interface Task {
   focusLevel?: 'Main' | 'Focus'; // Main: ordinary task, Focus: intense deep work
   estimatedTime?: number; // Estimated duration in minutes
   isCompleted: boolean;
-  importance?: ImportanceLevel;
 }
 
 export interface UserProfile {

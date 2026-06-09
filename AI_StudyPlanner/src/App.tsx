@@ -7,8 +7,6 @@ import TimelineView from './components/TimelineView';
 import StatisticsView from './components/StatisticsView';
 import SettingsView from './components/SettingsView';
 import { FaceMeshTracker } from './components/FaceMeshTracker';
-import CalendarView from './components/CalendarView';
-import AiCoachPopup from './components/AiCoachPopup';
 
 export default function App() {
   // Authentication states
@@ -21,13 +19,10 @@ export default function App() {
   });
 
   // Navigation tab states
-  const [activeTab, setActiveTab] = useState<'schedule' | 'timeline' | 'calendar' | 'statistics' | 'settings'>('timeline');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'timeline' | 'statistics' | 'settings'>('timeline');
 
   // AI Focus Tracker state
   const [isAiTrackerOpen, setIsAiTrackerOpen] = useState<boolean>(false);
-
-  // 초대형 AI 독촉 팝업을 껐다 켤 스위치
-  const [showAiPopup, setShowAiPopup] = useState<boolean>(false);
 
   // Application configurations
   const [settings, setSettings] = useState<AppSettings>({
@@ -42,20 +37,16 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [preselectedDate, setPreselectedDate] = useState<string | null>(null);
-  const [preselectedStartTime, setPreselectedStartTime] = useState<string | null>(null);
-  const [preselectedDuration, setPreselectedDuration] = useState<number | null>(null);
-  const [fromTab, setFromTab] = useState<'timeline' | 'calendar'>('timeline');
 
   // Apply dark mode theme dynamically
   useEffect(() => {
     const root = window.document.documentElement;
     if (settings.theme === 'dark') {
       root.classList.add('dark');
-      root.style.backgroundColor = '#15232a';
+      root.style.backgroundColor = '#15232a'; // matches tertiary color
     } else {
       root.classList.remove('dark');
-      root.style.backgroundColor = '#f7f9fb';
+      root.style.backgroundColor = '#f7f9fb'; // matches bright bg
     }
   }, [settings.theme]);
 
@@ -83,14 +74,12 @@ export default function App() {
   // Handler to add or update a study plan
   const handleSaveTask = async (taskData: Omit<Task, 'id'>) => {
     if (editingTask) {
+      // Update existing task
       const updatedTask: Task = { ...taskData, id: editingTask.id };
       setTasks((prev) => prev.map(t => t.id === editingTask.id ? updatedTask : t));
       setEditingTask(null);
-      setPreselectedDate(null);
-      setPreselectedStartTime(null);
-      setPreselectedDuration(null);
-      setActiveTab(fromTab);
-
+      setActiveTab('timeline');
+      
       try {
         const response = await fetch(`/api/tasks/${updatedTask.id}`, {
           method: 'PUT',
@@ -104,16 +93,17 @@ export default function App() {
         console.error("Network error updating task:", err);
       }
     } else {
+      // Add new task
       const tempId = Math.random().toString(36).substring(2, 9);
       const newTask: Task = { ...taskData, id: tempId };
 
+      // Update state instantly for hyper-fast response
       setTasks((prev) => [...prev, newTask]);
+      
+      // Switch view to timeline so user sees their new task
+      setActiveTab('timeline');
 
-      setActiveTab(fromTab);
-      setPreselectedDate(null);
-      setPreselectedStartTime(null);
-      setPreselectedDuration(null);
-
+      // Post to express backend API
       try {
         const response = await fetch('/api/tasks', {
           method: 'POST',
@@ -132,11 +122,12 @@ export default function App() {
   // 완료 상태 토글 핸들러
   const handleToggleTask = async (id: string, isCompleted: boolean) => {
     setTasks((prev) => prev.map(t => t.id === id ? { ...t, isCompleted } : t));
-
+    
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        // 기존 데이터를 유지하면서 isCompleted만 변경하여 전송
         body: JSON.stringify({ ...tasks.find(t => t.id === id), isCompleted }),
       });
       if (!response.ok) {
@@ -147,22 +138,17 @@ export default function App() {
     }
   };
 
-  // 📌 [매운맛 장치] 알림에서 '나중에 하기' 누르면 강제로 잔소리 모드로 전환하고 큰 팝업 띄우기
-  const handlePostponeStudy = () => {
-    setSettings(prev => ({
-      ...prev,
-      aiPersona: '잔소리쟁이'
-    }));
-    setShowAiPopup(true);
-  };
-
+  // Handler to trigger edit
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setActiveTab('schedule');
   };
 
+  // Handler to remove task
   const handleDeleteTask = async (id: string) => {
+    // Delete state instantly
     setTasks((prev) => prev.filter((t) => t.id !== id));
+
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
@@ -176,38 +162,42 @@ export default function App() {
   };
 
   const handleLoginSuccess = (email: string, name: string, avatarUrl: string) => {
-    setUser({ name, email, avatarUrl, membership: 'Premium Member' });
+    setUser({
+      name,
+      email,
+      avatarUrl,
+      membership: 'Premium Member'
+    });
     setIsLoggedIn(true);
     setActiveTab('timeline');
   };
 
-  const handleLogout = () => { setIsLoggedIn(false); };
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
 
-  if (!isLoggedIn) { return <AuthPage onLoginSuccess={handleLoginSuccess} />; }
+  if (!isLoggedIn) {
+    return <AuthPage onLoginSuccess={handleLoginSuccess} />;
+  }
 
   return (
     <div className={`min-h-screen ${settings.theme === 'dark' ? 'bg-[#15232a] text-white' : 'bg-background text-on-surface'}`}>
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        user={user}
-        onLogout={handleLogout}
+      {/* Sidebar layouts on desktop */}
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        user={user} 
+        onLogout={handleLogout} 
         isAiTrackerOpen={isAiTrackerOpen}
         setIsAiTrackerOpen={setIsAiTrackerOpen}
       />
 
+      {/* AI Focus Tracker Overlay */}
       {isAiTrackerOpen && (
         <FaceMeshTracker onClose={() => setIsAiTrackerOpen(false)} />
       )}
 
-      {/* 초대형 AI 코치 팝업 구역 */}
-      {showAiPopup && (
-        <AiCoachPopup
-          persona={settings.aiPersona as any}
-          onClose={() => setShowAiPopup(false)}
-        />
-      )}
-
+      {/* Main workspace container canvas */}
       <div className="ml-64 min-h-screen relative p-10 flex flex-col">
         {isLoading && tasks.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center animate-pulse py-12">
@@ -215,86 +205,42 @@ export default function App() {
             <p className="text-sm text-on-surface-variant font-semibold">데이터를 유기적으로 가져오고 있습니다...</p>
           </div>
         ) : (
-          <div className={`flex-1 w-full mx-auto animate-fade-in ${(activeTab === 'calendar' || activeTab === 'schedule') ? 'max-w-[95%]' : 'max-w-5xl'}`}>
-
+          <div className="flex-1 max-w-5xl w-full mx-auto animate-fade-in">
             {activeTab === 'schedule' && (
-              <div className="mb-4 flex justify-end">
-                <button
-                  onClick={() => setShowAiPopup(true)}
-                  className="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-purple-700 transition-all"
-                >
-                  🤖 [{settings.aiPersona} 모드] 알림 타격감 테스트 버튼
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'schedule' && (
-              <ScheduleView
-                onSaveTask={handleSaveTask}
+              <ScheduleView 
+                onSaveTask={handleSaveTask} 
                 onNavigateBack={() => {
                   setEditingTask(null);
-                  setPreselectedDate(null);
-                  setPreselectedStartTime(null);
-                  setPreselectedDuration(null);
-                  setActiveTab(fromTab);
-                }}
+                  setActiveTab('timeline');
+                }} 
                 settings={settings}
                 editingTask={editingTask}
-                preselectedDate={preselectedDate}
-                preselectedStartTime={preselectedStartTime}
-                preselectedDuration={preselectedDuration}
                 tasks={tasks}
-                onPostponeStudy={handlePostponeStudy} // 📌 배달완료!
               />
             )}
 
             {activeTab === 'timeline' && (
-              <TimelineView
+              <TimelineView 
                 tasks={tasks}
                 onDeleteTask={handleDeleteTask}
-                onEditTask={(task) => {
-                  setFromTab('timeline');
-                  handleEditTask(task);
-                }}
+                onEditTask={handleEditTask}
                 onToggleTask={handleToggleTask}
                 onNavigateToAddTask={() => {
                   setEditingTask(null);
-                  setPreselectedDate(null);
-                  setPreselectedStartTime(null);
-                  setPreselectedDuration(null);
-                  setFromTab('timeline');
-                  setActiveTab('schedule');
-                }}
-              />
-            )}
-
-            {activeTab === 'calendar' && (
-              <CalendarView
-                tasks={tasks}
-                onDeleteTask={handleDeleteTask}
-                onEditTask={(task) => {
-                  setFromTab('calendar');
-                  setEditingTask(task);
-                  setActiveTab('schedule');
-                }}
-                onToggleTask={handleToggleTask}
-                onNavigateToAddTask={(date, startTime, duration) => {
-                  setEditingTask(null);
-                  setPreselectedDate(date);
-                  setPreselectedStartTime(startTime || null);
-                  setPreselectedDuration(duration || null);
-                  setFromTab('calendar');
                   setActiveTab('schedule');
                 }}
               />
             )}
 
             {activeTab === 'statistics' && (
-              <StatisticsView tasks={tasks} settings={settings} />
+              <StatisticsView 
+                tasks={tasks}
+                settings={settings}
+              />
             )}
 
             {activeTab === 'settings' && (
-              <SettingsView
+              <SettingsView 
                 user={user}
                 setUser={setUser}
                 settings={settings}
