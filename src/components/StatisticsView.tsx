@@ -5,9 +5,10 @@ import { Share2, Brain, Lightbulb, TrendingUp, Sparkles, ArrowRight } from 'luci
 interface StatisticsViewProps {
   tasks: Task[];
   settings: AppSettings;
+  realtimeSession?: { focusTime: number, focusScore: number } | null;
 }
 
-export default function StatisticsView({ tasks, settings }: StatisticsViewProps) {
+export default function StatisticsView({ tasks, settings, realtimeSession }: StatisticsViewProps) {
   const [activeRange, setActiveRange] = useState<'Day' | 'Week' | 'Month'>('Week');
   const [aiFeedback, setAiFeedback] = useState<string>('');
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
@@ -58,19 +59,42 @@ export default function StatisticsView({ tasks, settings }: StatisticsViewProps)
     return acc + diff;
   }, 0);
 
-  const hours = Math.floor(totalMins / 60);
-  const minutes = totalMins % 60;
-  const timeStr = `${hours}h ${minutes}m`;
+  // 시연용 실시간 측정 시간(초 단위)을 합산하여 표시
+  const totalSeconds = (totalMins * 60) + (realtimeSession?.focusTime || 0);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  // 방금 측정한 단기 세션을 즉각 확인할 수 있도록 초 단위까지 노출
+  const timeStr = seconds > 0 || realtimeSession 
+    ? `${hours}h ${minutes}m ${seconds}s` 
+    : `${hours}h ${minutes}m`;
 
   // 데이터가 없을 때를 위한 빈 흐름 구성
-  const hourlyFlow = todayTasks.length > 0 ? [
+  const baseFlow = todayTasks.length > 0 ? [
     { hour: '08h', pct: 20, type: 'Mild' },
     { hour: '12h', pct: 60, type: 'High' },
     { hour: '16h', pct: 40, type: 'Mild' },
-    { hour: '20h', pct: 80, type: 'High', isPeak: true },
-  ] : [
-    { hour: 'N/A', pct: 0, type: 'Mild' }
-  ];
+    { hour: '20h', pct: 80, type: 'High', isPeak: !realtimeSession }, // 실시간 세션이 있으면 peak 양보
+  ] : [];
+
+  const hourlyFlow = [...baseFlow];
+  
+  // 방금 수행한 실시간 집중 세션이 있다면 막대 그래프 가장 끝에 "Now"로 추가 (시연용)
+  if (realtimeSession) {
+    const currentHour = new Date().getHours();
+    hourlyFlow.push({
+      hour: `${currentHour.toString().padStart(2, '0')}h(Now)`,
+      pct: realtimeSession.focusScore,
+      type: realtimeSession.focusScore > 60 ? 'High' : 'Mild',
+      isPeak: realtimeSession.focusScore > 85
+    });
+  }
+
+  if (hourlyFlow.length === 0) {
+    hourlyFlow.push({ hour: 'N/A', pct: 0, type: 'Mild' });
+  }
 
   const handleShare = () => {
     alert('학습 통계 대시보드가 성공적으로 이미지로 내보내졌습니다! (클립보드 복사 완료)');

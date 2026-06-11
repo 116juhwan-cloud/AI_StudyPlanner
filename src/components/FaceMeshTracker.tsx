@@ -5,7 +5,7 @@ import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import confetti from "canvas-confetti";
 
 interface FaceMeshTrackerProps {
-  onClose: () => void;
+  onClose: (stats?: { focusTime: number, focusScore: number }) => void;
 }
 
 export function FaceMeshTracker({ onClose }: FaceMeshTrackerProps) {
@@ -298,7 +298,11 @@ export function FaceMeshTracker({ onClose }: FaceMeshTrackerProps) {
         colors: ["#3b82f6", "#a855f7", "#ec4899", "#10b981", "#fbbf24"],
       });
     }
-    onClose();
+    const avgScore = focusHistory.length > 0 
+      ? Math.round(focusHistory.reduce((acc, curr) => acc + curr.score, 0) / focusHistory.length)
+      : focusScore;
+      
+    onClose({ focusTime, focusScore: avgScore });
   };
 
   const getStatusDetails = () => {
