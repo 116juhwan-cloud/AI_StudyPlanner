@@ -105,5 +105,20 @@
     "isCompleted": false,
     "importance": "Medium",
     "id": "4u73otz"
+  },
+  {
+    "title": "ㅇ",
+    "isAllDay": false,
+    "startDate": "2026-06-10",
+    "startTime": "07:00",
+    "endDate": "2026-06-10",
+    "endTime": "13:00",
+    "subject": "수학",
+    "notes": "ㅇㄹㄴㄴㄹ",
+    "focusLevel": "Main",
+    "estimatedTime": 360,
+    "isCompleted": false,
+    "importance": "Low",
+    "id": "jo6zolc"
   }
 ]

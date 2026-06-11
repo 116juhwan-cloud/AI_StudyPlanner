@@ -1,10 +1,6 @@
 # 📚 StudyWise (AI Study Planner)
 
-<div align="center">
-  <img width="800" alt="StudyWise Banner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
 
-<br />
 
 ## 🌟 프로젝트 소개 (Why this project?)
 
