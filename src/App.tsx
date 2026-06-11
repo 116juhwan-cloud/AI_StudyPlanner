@@ -29,6 +29,9 @@ export default function App() {
   // 초대형 AI 독촉 팝업을 껐다 켤 스위치
   const [showAiPopup, setShowAiPopup] = useState<boolean>(false);
 
+  // 실시간 단기 집중 세션 결과 (시연용)
+  const [realtimeSession, setRealtimeSession] = useState<{ focusTime: number, focusScore: number } | null>(null);
+
   // Application configurations
   const [settings, setSettings] = useState<AppSettings>({
     pushNotifications: true,
@@ -197,7 +200,15 @@ export default function App() {
       />
 
       {isAiTrackerOpen && (
-        <FaceMeshTracker onClose={() => setIsAiTrackerOpen(false)} />
+        <FaceMeshTracker onClose={(stats) => {
+          setIsAiTrackerOpen(false);
+          if (stats && stats.focusTime > 0) {
+            setRealtimeSession(prev => ({
+              focusTime: (prev?.focusTime || 0) + stats.focusTime,
+              focusScore: prev ? Math.round((prev.focusScore + stats.focusScore) / 2) : stats.focusScore
+            }));
+          }
+        }} />
       )}
 
       {/* 초대형 AI 코치 팝업 구역 */}
@@ -290,7 +301,7 @@ export default function App() {
             )}
 
             {activeTab === 'statistics' && (
-              <StatisticsView tasks={tasks} settings={settings} />
+              <StatisticsView tasks={tasks} settings={settings} realtimeSession={realtimeSession} />
             )}
 
             {activeTab === 'settings' && (
