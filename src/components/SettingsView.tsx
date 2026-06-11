@@ -15,6 +15,7 @@ export default function SettingsView({ user, setUser, settings, setSettings, onN
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState(user.name);
   const [editEmail, setEditEmail] = useState(user.email);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const personas: ('잔소리쟁이' | '칭찬 기계' | '차분한 조력자')[] = ['잔소리쟁이', '칭찬 기계', '차분한 조력자'];
 
@@ -53,6 +54,8 @@ export default function SettingsView({ user, setUser, settings, setSettings, onN
       ...settings,
       aiPersona: per
     });
+    setToastMessage(`'${per}' 페르소나가 저장되었습니다.`);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const handleSupportClick = () => {
@@ -307,6 +310,14 @@ export default function SettingsView({ user, setUser, settings, setSettings, onN
           STUDYWISE ACADEMIC FOCUS PLATFORM
         </p>
       </section>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface border border-primary/20 px-6 py-3 rounded-full shadow-xl z-50 animate-fade-in flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold text-primary">{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
